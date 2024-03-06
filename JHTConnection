@@ -1,0 +1,35 @@
+//William Hume ID#2007166
+package DBConnection;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import javax.swing.JOptionPane;
+
+//This class checks the connection to the xamp server is working in order to connect to the database
+public class JHTConnection {
+	//This variable will hold the connection object to the database.
+	private static Connection jhtConnection = null;
+	
+	//Creating the method that returns a Connection object.
+	public static Connection getDatabaseConnection()
+	{
+		//Defines the URL string for connecting to the MySQL database named java_haulage_and_trucking.
+		String url = "jdbc:mysql://localhost:3306/java_haulage_and_trucking";
+		try
+		{	//Checks if the jhtConnection object is null. If it is null, 
+			//it means that a connection has not been established yet, so a new connection is created.
+			if(jhtConnection == null)
+			{
+				//Uses the DriverManager class to establish a database connection using the provided URL, username and password
+				jhtConnection = DriverManager.getConnection(url, "root", "");
+				//Displaying the message below to the user in a dialogue box
+				JOptionPane.showMessageDialog(null, "Connected to Local Server", "JDBC Connection Status", JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
+		//Handle any exceptions that may occur
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return jhtConnection;
+	}
+}
