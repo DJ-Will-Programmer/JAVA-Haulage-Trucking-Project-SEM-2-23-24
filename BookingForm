@@ -1,0 +1,285 @@
+//William Hume ID:2007166
+package apgrouproject;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Date;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import com.toedter.calendar.JCalendar;
+import java.text.SimpleDateFormat;
+import java.util.Random;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import DBConnection.FormDatabase;
+public class BookingForm extends JInternalFrame{
+	
+	private static final long serialVersionUID = 1L;
+    private JButton generateInvoice, clear;
+    private JTextField nameField, emailField, phoneField;
+    private JTextArea addressArea;
+    private JPanel panel;
+    private GridBagConstraints gbc;
+    private JComboBox<String> routeAndRateComboBox;
+  //  private RateSheet rateSheet;
+    private final String timeOfDelivery[] = {"9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"};
+    private JComboBox<String> timeComboBox;
+    private final String haulageType[] = {"sand", "gravel", "dirt", "marl", "equipment", "block", "steel", "boxes", "food items", "cement"};
+    private JComboBox<String> haulageComboBox;
+    private JCalendar date;
+    public static final Logger logger = LogManager.getLogger(BookingForm.class);
+    // Creating form
+    public BookingForm() {
+        // Title of the window
+        super("Java Haulage and Trucking Booking Form", true, true, true, true);
+      //Adding the newWindowsProperties method so that the rate sheet window can display
+        newWindowProperties();
+        // Create a JPanel with GridBagLayout
+        panel = new JPanel(new GridBagLayout());
+        getContentPane().add(panel);
+
+        // Create GridBagConstraints
+        gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Padding
+
+        // Adding name label along with its dimensions
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Personal or Company name: "), gbc);
+
+        // Adding name text field
+        nameField = new JTextField(50);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(nameField, gbc);
+
+        // Adding email address label
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Email: "), gbc);
+
+        // Adding email address text field
+        emailField = new JTextField(50);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        panel.add(emailField, gbc);
+
+        // Adding an address label
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Address: "), gbc);
+
+        // Adding address text area
+        addressArea = new JTextArea(5, 20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        panel.add(new JScrollPane(addressArea), gbc);
+
+        // Adding phone number label
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Phone: "), gbc);
+
+        // Adding phone number field
+        phoneField = new JTextField(12);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        panel.add(phoneField, gbc);
+
+        // Adding the delivery information (ie route and rate)
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Route and Rate:"), gbc);
+
+        // Adding route and rate combo box
+        RateSheet rateSheet= new RateSheet();
+        routeAndRateComboBox = rateSheet.getRate();
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        panel.add(routeAndRateComboBox, gbc);
+
+        // Adding the type of item to be hauled combo box
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Haulage Type: "), gbc);
+
+        // Adding haulage type combo box
+        haulageComboBox = new JComboBox<String>(haulageType);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        panel.add(haulageComboBox, gbc);
+
+        // Adding calendar label
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Day: "), gbc);
+
+        // Adding date option using the JCalendar class
+        date = new JCalendar();
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        panel.add(date, gbc);
+        // adding label for time
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Time of Delivery: "), gbc);
+
+        // Adding time combo box
+        timeComboBox = new JComboBox<String>(timeOfDelivery);
+        gbc.gridx = 1;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        panel.add(timeComboBox, gbc); 
+        
+        // Adding the generate Invoice button
+        generateInvoice = new JButton("Generate Invoice");
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        panel.add(generateInvoice, gbc);
+
+        // Adding action listener to the generateInvoice button
+        generateInvoice.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getInvoice();
+
+                // Noting that the invoice has been generated
+                logger.info("Invoice has been generated");
+            }
+        }); 
+
+        // Adding the clear button to the form
+        clear = new JButton("Clear Form");
+        gbc.gridx = 1;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+        panel.add(clear, gbc);
+
+        // Adding action listener to the clear button to clear the contents of the form when clicked
+       clear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearForm();
+
+                // Logging the action for the clear button
+                logger.info("The information entered in this form has been cleared");
+            }
+        }); 
+
+    }
+    
+    //Method sets the properties of the booking form window
+    public void newWindowProperties()
+    {
+    	this.setSize(600, 450);
+		this.setVisible(true);
+		this.setResizable(true);
+    }
+    // Method gets the information for an invoice for an order
+    private void getInvoice() {
+        // Create the invoice statement by retrieving the user input data
+        StringBuilder invoice = new StringBuilder();
+        // Creating a variable to store the invoice generated number
+        String invoiceNo;
+        invoiceNo = generateInvoiceNumber();
+        java.util.Date utilDate = date.getDate();
+        Date selectedDate = new Date(utilDate.getTime());
+        invoice.append("Date: ").append(selectedDate).append("\n");
+        invoice.append("Invoice Number: ").append(invoiceNo).append("\n");
+        invoice.append("Personal or Company name: ").append(nameField.getText()).append("\n");
+        invoice.append("Address: ").append(addressArea.getText()).append("\n");
+        invoice.append("Phone Number: ").append(phoneField.getText()).append("\n");
+
+        // Retrieving route and rate from the route and rate combo box
+        String selectedRouteAndRate = (String) routeAndRateComboBox.getSelectedItem();
+        invoice.append("Route and Rate: ").append(selectedRouteAndRate).append("\n");
+
+        // Retrieving haulage type from the haulage combo box
+        String selectedHaulageType = (String) haulageComboBox.getSelectedItem();
+        invoice.append("Haulage Type: ").append(selectedHaulageType).append("\n");
+
+        // Retrieving route and rate from the route and rate combo box
+        String selectedTime = (String) timeComboBox.getSelectedItem();
+        invoice.append("Time: ").append(selectedTime).append("\n");
+
+        // Displays information in JOptionPane
+        JOptionPane.showMessageDialog(this, invoice.toString(), "Java Haulage and Trucking Invoice", JOptionPane.INFORMATION_MESSAGE);
+
+        // Logging what this fragment of code is doing
+        logger.info("Data has been gathered for invoice generation.");
+        
+        //Creating variables to store data from the form to write it to the database
+        //Storing the autigenerated invoice number
+        String invoiceNoValue = invoiceNo;
+        //Converting date to string 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String dateValue = dateFormat.format(utilDate);
+        String nameValue = nameField.getText();
+        String addressValue = addressArea.getText();
+        String phoneValue = phoneField.getText();
+        String emailValue = emailField.getText();
+        String routeAndRateValue = (String) routeAndRateComboBox.getSelectedItem();
+        String haulageValue = (String) haulageComboBox.getSelectedItem();
+        String timeValue = (String) timeComboBox.getSelectedItem();
+        
+        //Passing String attributes to database method
+        FormDatabase formDB = new FormDatabase();
+        		formDB.writeToDatabse(invoiceNoValue, dateValue, nameValue, addressValue, phoneValue,
+        		emailValue, routeAndRateValue, haulageValue, timeValue);
+      
+    } 
+
+    // Generates a unique string for an invoice number
+    // Creating a static attribute to hold the characters used to make up the invoice number
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    // Creating a static attribute to declare a constant length of 7 for the invoice
+    private static final int LENGTH = 7;
+
+    public static String generateInvoiceNumber() {
+        // Calling random method
+        Random random = new Random();
+        // Creating an object of the StringBuilder class to hold the string
+        StringBuilder invoiceBuilder = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            invoiceBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return invoiceBuilder.toString();
+    }
+
+    // Method to clear the form
+    private void clearForm() {
+        nameField.setText("");
+        emailField.setText("");
+        phoneField.setText("");
+        addressArea.setText("");
+        haulageComboBox.setSelectedIndex(0);
+        routeAndRateComboBox.setSelectedIndex(0);
+        timeComboBox.setSelectedIndex(0);
+        date.getMinSelectableDate();
+    } 
+}
