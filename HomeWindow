@@ -1,0 +1,214 @@
+ //William Hume ID:2007166
+package apgrouproject;
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+public class HomeWindow extends JFrame{
+	
+	private static final long serialVersionUID = 1L;
+	private JDesktopPane desktop;
+	private JMenuBar menuBar;
+	private JMenu home;
+	private JMenu rateSheet;
+	private JMenu bookingForm;
+	private JMenuItem menuItemRateSheet;
+	private JMenuItem menuItemBookingForm;
+	private JMenuItem save;
+	private MenuItem menuOpen;
+	private MenuItem menuClose;
+	private PopupMenu popup;
+	private TrayIcon trayIcon;
+	private Toolkit toolKit = Toolkit.getDefaultToolkit();
+	private Image image = toolKit.getImage("./images/app.png");
+	public static final Logger logger = LogManager.getLogger(HomeWindow.class);
+	//Default constructor calls the methods in the class
+	public HomeWindow()
+	{
+		initializeComponenets();
+		addMenuItemsToPopup();
+		addMenuToMenuBar();
+		addMenuItemsToMenu();
+		addComponentsToWindow();
+		registerListener();
+		setWindowProperties();
+		logger.info("Java Haulage and Trucking MDI running successfully.");
+	}
+	//Initialize the components of the home window
+	public void initializeComponenets()
+	{
+		this.setTitle("JAVA Haulage and Trucking");
+		desktop = new JDesktopPane();
+		menuBar = new JMenuBar();
+		home = new JMenu("Home");
+		home.setMnemonic('H');
+		rateSheet = new JMenu("Rate Sheet");
+		rateSheet.setMnemonic('R');
+		bookingForm = new JMenu("Booking Form");
+		bookingForm.setMnemonic('B');
+		menuItemRateSheet = new JMenuItem("Rout and Rate Sheet");
+		menuItemBookingForm = new JMenuItem("Booking Form");
+		save = new JMenuItem("Save");
+		save.setToolTipText("Saves the active document");
+		menuOpen = new MenuItem("Open");
+		menuClose = new MenuItem("Close");
+		popup = new PopupMenu();
+		trayIcon = new TrayIcon(image);
+		trayIcon.setPopupMenu(popup);
+	}
+	
+	//Adds the items to the popup menu
+	public void addMenuItemsToPopup()
+	{
+		popup.add(menuClose);
+		popup.add(menuOpen);
+	}
+	
+	//Adds the menu bar to the main menu
+	public void addMenuToMenuBar()
+	{
+		menuBar.add(home);
+		menuBar.add(rateSheet);
+		menuBar.add(bookingForm);
+	}
+	
+	//Adds the menu items to the menu
+	public void addMenuItemsToMenu()
+	{
+		rateSheet.add(menuItemRateSheet);
+		bookingForm.add(menuItemBookingForm);
+		home.add(save);
+	}
+	
+	//Adds the components to the desktop
+	public void addComponentsToWindow()
+	{
+		this.add(desktop);
+	}
+	
+	//Sets the properties of the display window
+	public void setWindowProperties()
+	{
+		this.setJMenuBar(menuBar);
+		this.setSize(1020, 700);
+		this.setResizable(true);
+		this.setVisible(true);
+		this.setLocationRelativeTo(null);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	//Enables the Rate Sheet and Booking form windows to display
+	public void registerListener()
+	{
+		//Adding the rate sheet to the main window
+		menuItemRateSheet.addActionListener(new ActionListener()
+				{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				desktop.add(new RateSheet());
+			}
+				});
+		//Adding the booking form to the main window
+		menuItemBookingForm.addActionListener(new ActionListener()
+				{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				desktop.add(new BookingForm());
+			}
+				});
+		//Adding an action listener to the menu open icon
+		menuOpen.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				SystemTray.getSystemTray().remove(trayIcon); setVisible(true);
+			}
+		});
+		//Adds an action listener to the menu icon menu close and removes the tray icon
+		menuClose.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				SystemTray.getSystemTray().remove(trayIcon);
+				System.exit(0);
+			}
+		});
+		
+		//Setting up a window listener for a window in java
+		this.addWindowListener(new WindowListener()
+		{
+			@Override
+			public void windowOpened(WindowEvent e)
+			{
+				//System.out.println("Welcome to the Java Haulage and Trucking Ssytem");
+			}
+			
+			@Override
+			public void windowClosing(WindowEvent e)
+			{
+				try {
+					SystemTray.getSystemTray().add(trayIcon);
+				}
+				catch(AWTException e1)
+				{
+					e1.printStackTrace();
+				}
+			}
+			
+			@Override
+			public void windowClosed(WindowEvent e)
+			{
+				
+			}
+			
+			@SuppressWarnings("unused")
+			public void windowlconified(WindowEvent e)
+			{
+				
+			}
+			
+			@Override
+			public void windowDeiconified(WindowEvent e)
+			{
+				
+			}
+			
+			@Override
+			public void windowActivated(WindowEvent e)
+			{
+				
+			}
+			
+			public void windowDeactivated(WindowEvent e)
+			{
+				
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	} 
+		
+}
