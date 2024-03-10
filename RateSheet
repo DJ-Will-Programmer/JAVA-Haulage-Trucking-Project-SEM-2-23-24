@@ -1,0 +1,95 @@
+//William Hume ID:2007166
+package apgrouproject;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+// Window to display and add to the rate sheet
+public class RateSheet extends JInternalFrame {
+
+    private JButton generateSheet;
+    private JButton addRate;
+    private JPanel panel;
+
+    private static final long serialVersionUID = 1L;
+    private final String routeAndRate[] = {"Kingston to Spanish Town - $50,000", "Kingston to Stony Hill - $40,000", "Kingston to Portmore - $45,000", "Kingston to Mandeville - $65,000",
+            "Kingston to Montego Bay - $100,000", "Montego Bay to Lucea - $50,000", "Montego Bay to Draxehall - $60,000", "Montego Bay to Kingston - $75,000", "Montego Bay to Black River - $75,000",
+            "Montego Bay to Kingston - $100,000"};
+    private JComboBox<String> rateComboBox;
+    public static final Logger logger = LogManager.getLogger(RateSheet.class);
+
+    public RateSheet() {
+        super("Java Haulage and Trucking Rate Sheet", true, true, true, true);
+        //Adding the newWindowsProperties method so that the rate sheet window can display
+        newWindowProperties();
+
+        // Displaying a welcome message
+        JOptionPane.showMessageDialog(null, "Welcome to JAVA Haulage and Trucking Rate Sheet", "JAVA Haulage and Trucking", JOptionPane.INFORMATION_MESSAGE);
+
+        // Adding the border layout to the panel
+        panel = new JPanel(new BorderLayout());
+        getContentPane().add(panel);
+
+        // Adding the generateSheet button to the frame using border layout
+        generateSheet = new JButton("Generate Rate Sheet");
+        generateSheet.setSize(400, 250);
+        panel.add(generateSheet, BorderLayout.WEST);
+
+        // Adding the add rate button
+        addRate = new JButton("Add Route & Rate");
+        addRate.setSize(400, 250);
+        panel.add(addRate, BorderLayout.EAST);
+
+        // Initialize JComboBox
+        rateComboBox = new JComboBox<>(routeAndRate);
+
+        // Adding action listener to the generateSheet button to display the rate combo box when called
+        generateSheet.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Check if the rateComboBox is already added to the panel
+                if (!panel.isAncestorOf(rateComboBox)) {
+                    // Adding the combo box to the frame
+                    panel.add(rateComboBox, BorderLayout.CENTER);
+                    panel.revalidate(); // Refresh the layout
+                    panel.repaint(); // Repaint the panel
+                    logger.info("Displaying rate sheet combo box");
+                }
+            }
+        });
+
+        // Adding action listener to addRate button to accept a string input for a new rate using the input dialogue
+        addRate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String input = JOptionPane.showInputDialog(null, "Please enter a new route and its rate starting from either Kingston or Montego Bay", "Add New Route", JOptionPane.INFORMATION_MESSAGE);
+                // Check if input is not null and not empty
+                if (input != null && !input.isEmpty()) {
+                    addRouteAndRates(input);
+                    logger.info("A new route has been added to the rate sheet");
+                }
+            }
+        });
+    }
+    
+    //Method contains properties for the window to function
+    public void newWindowProperties()
+    {
+    	this.setSize(600, 450);
+		this.setVisible(true);
+		this.setResizable(true);
+    }
+
+    // Method allows the user to add routes and rates into the system
+    public void addRouteAndRates(String routeAndRate) {
+        rateComboBox.addItem(routeAndRate);
+    }
+
+    // Method gets the combo box so that it can be used in the booking form
+    public JComboBox<String> getRate() {
+        return rateComboBox;
+    }
+}
