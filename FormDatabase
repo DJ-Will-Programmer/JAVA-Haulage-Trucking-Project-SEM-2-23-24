@@ -1,0 +1,57 @@
+//William Hume ID#2007166
+package DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class FormDatabase {
+	public static final Logger logger = LogManager.getLogger(FormDatabase.class);
+	private Connection jhtConn = null;
+	
+	public FormDatabase()
+	{
+		jhtConn = JHTConnection.getDatabaseConnection();
+	}
+	
+	//Method accepts String parameters to write content to a database
+	public void writeToDatabse(String invoiceNoValue, String dateValue, String nameValue, String addressValue, String phoneValue,
+			String emailValue, String routeAndRateValue, String haulageValue, String timeValue)
+	{
+		try
+		{
+			//Build SQL statement to insert a new student
+			String sql = "INSERT INTO order_information (`Invoice No`, `Date`, `Name`, `Address`, `Phone Number`, `Email`, `Route and Rate`, `Haulage Type`, `Time`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(sql);
+            
+           
+            // Set the values for the parameters
+            statement.setString(1, invoiceNoValue);
+            statement.setString(2, dateValue);
+            statement.setString(3, nameValue);
+            statement.setString(4, addressValue);
+            statement.setString(5, phoneValue);
+            statement.setString(6, emailValue);
+            statement.setString(7, routeAndRateValue);
+            statement.setString(8, haulageValue);
+            statement.setString(9, timeValue);
+            // Execute the query
+            statement.executeUpdate();
+
+            // Close the statement
+            statement.close();
+            
+            System.out.println("Boooking Form data has been successfully stored in the oder_information database!");
+            logger.info("Booking Form data successfully written to java_haulage_and_trucking databse");
+		}
+		catch (SQLException e)
+		{
+			System.out.println("Failed to add Booking Form Data to order_information databse: " + e.getMessage());
+			e.printStackTrace();
+			logger.error("Failed to connect to databse. Check source code!!!!!!!");
+		}
+	}
+}
