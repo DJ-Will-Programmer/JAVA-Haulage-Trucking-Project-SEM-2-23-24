@@ -29,6 +29,8 @@ public class HomeWindow extends JFrame{
 	private JMenu bookingForm;
 	private JMenuItem menuItemRateSheet;
 	private JMenuItem menuItemBookingForm;
+	//private JMenuItem menuItemStaff;
+	//private JMenuItem menuItemCustomer;
 	private JMenuItem save;
 	private MenuItem menuOpen;
 	private MenuItem menuClose;
