@@ -234,7 +234,7 @@ public class BookingForm extends JInternalFrame{
         logger.info("Data has been gathered for invoice generation.");
         
         //Creating variables to store data from the form to write it to the database
-        //Storing the autigenerated invoice number
+        //Storing the auto-generated invoice number
         String invoiceNoValue = invoiceNo;
         //Converting date to string 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -282,4 +282,50 @@ public class BookingForm extends JInternalFrame{
         timeComboBox.setSelectedIndex(0);
         date.getMinSelectableDate();
     } 
+    
+    //Gets the location of the company location from which the order was made
+    public String getSourceAddress(String address)
+    {
+    	 // Split the input string into words
+        String[] words = address.split("\\s+");
+
+        // Iterate over the words to find the route containing "Kingston" or "Montego"
+        for (int i = 0; i < words.length; i++) {
+            String currentWord = words[i];
+            // Check if the word contains "Kingston" or "Montego" (case-insensitive)
+            if (currentWord.equalsIgnoreCase("Kingston")) {
+                // Return the address for Kingston
+                return "26 Marcus Garvey Drive, Kingston 6";
+            } else if (currentWord.equalsIgnoreCase("Montego")) {
+                // Check if the next word is "Bay" after "Montego"
+                if (i + 1 < words.length && words[i + 1].equalsIgnoreCase("Bay")) {
+                    // Return the address for Montego Bay
+                    return "33 Fair View Avenue, Montego Bay";
+                }
+            }
+        }
+        
+     // If "Kingston" or "Montego" is not found, return null or any other default value
+        return null;
+    }
+    
+    //Gets the rate for the associated route
+    public String getRate(String address)
+    {
+    	 // Find the position of the first dollar sign ('$')
+        int dollarIndex = address.indexOf('$');
+        if (dollarIndex != -1) { // If dollar sign found
+            // Find the position of the first space after the dollar sign
+            int spaceIndex = address.indexOf(' ', dollarIndex);
+            if (spaceIndex != -1) { // If space found after the dollar sign
+                // Extract the substring between the dollar sign and the space
+                String moneyString = address.substring(dollarIndex + 1, spaceIndex).trim();
+                // Remove commas from the money string
+                moneyString = moneyString.replace(",", "");
+                return moneyString;
+            }
+        }
+        // If dollar sign or space not found, return null
+        return null;
+    }
 }
