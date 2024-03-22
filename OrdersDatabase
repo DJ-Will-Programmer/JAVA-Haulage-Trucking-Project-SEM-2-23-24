@@ -1,0 +1,164 @@
+//Kyshauny Bailey
+package dbConnection;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.swing.JOptionPane;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class OrdersDatabase {
+	//Creating an attribute to use the log 4j2 and the database connection object
+	public static final Logger logger = LogManager.getLogger(OrdersDatabase.class);
+	private Connection jhtConn = null;
+	
+	public OrdersDatabase()
+	{
+		jhtConn = JHTConnection.getDatabaseConnection();
+	}
+	
+	//Method accepts String parameters to write content to a database
+	public void writeToOrdersTable(String invoice, String company, String sourceAddress, String destinationAddress,
+			String rate, String driver, String date)
+	{
+		try
+		{
+			//Build SQL statement to insert a new student
+			String sql = "INSERT INTO orders (invoiceNo, company, sourceAddress, destinationAddress,rate, driver, date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(sql);
+            
+           
+            // Set the values for the parameters
+            statement.setString(1, invoice);
+            statement.setString(2, company);
+            statement.setString(3, sourceAddress);
+            statement.setString(4, destinationAddress);
+            statement.setString(5, rate);
+            statement.setString(6, driver);
+            statement.setString(7, date);
+            // Execute the query
+            statement.executeUpdate();
+           
+            // Close the statement
+            statement.close();
+            
+            System.out.println("Boooking Form data has been successfully stored in the orders table!");
+            //Logging the actions that has occured
+            logger.info("Data for orders successfully written to order table. billed by <Admin>");
+		}
+		catch (SQLException e)
+		{
+			System.out.println("Failed to add Booking Form Data to orders table: " + e.getMessage());
+			e.printStackTrace();
+			logger.error("Failed to connect to databse. Check source code!!!!!!!");
+		}
+	}
+	
+	//Method searches for orders based on a particular period
+	public void searchByPeriod(String startPeriod, String endPeriod)
+	{
+		try {
+			// Create a statement object
+            Statement statement = jhtConn.createStatement();
+            
+            // SQL query to search by date range
+            String query = "SELECT * FROM orders WHERE date BETWEEN '" + startPeriod + "' AND '" + endPeriod + "'";
+            
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery(query);
+            
+            // Process the result set
+            while (resultSet.next()) {
+                // Retrieve data from the result set
+                String invoiceNum = resultSet.getString("invoiceNo");
+                String company = resultSet.getString("company");
+                String sourceAddress = resultSet.getString("sourceAddress");
+                String destinationAddress = resultSet.getString("destinationAddress");
+                String rate = resultSet.getString("rate");
+                String driver = resultSet.getString("driver");
+                String date = resultSet.getString("date");
+                // Process retrieved data here
+                // Create the invoice statement by retrieving the user input data
+                StringBuilder report = new StringBuilder();
+                report.append("Invoice Number:").append(invoiceNum).append("\n");
+                report.append("Company:").append(company).append("\n");
+                report.append("Source Address:").append(sourceAddress).append("\n");
+                report.append("Destination Address:").append(destinationAddress).append("\n");
+                report.append("Rate:").append(rate).append("\n");
+                report.append("Driver:").append(driver).append("\n");
+                report.append("Date:").append(date).append("\n");
+                
+                JOptionPane.showMessageDialog(null, report.toString(), "Java Haulage and Trucking Selected Period Order Report", JOptionPane.INFORMATION_MESSAGE);
+                logger.info("Successfully executed date querty. billed by <Admin>");
+            }
+
+            // Close the result set and statement
+            resultSet.close();
+            statement.close();
+		}
+		catch(SQLException e)
+		{
+			System.out.println("Could not retrieve dates for the specified period!!");
+			e.printStackTrace();
+			logger.error("Failed to retrieve data for the specified period");
+		}
+	}
+	
+	//Method searches for orders based on a particular period
+		public void searchByDriver(String driver)
+		{
+			try
+			{
+				 // Create a PreparedStatement object
+	            PreparedStatement preparedStatement = jhtConn.prepareStatement("SELECT * FROM orders WHERE driver = ?");
+
+	            // Set the parameter in the prepared statement
+	            preparedStatement.setString(1, driver);
+
+	            // Execute the query
+	            ResultSet resultSet = preparedStatement.executeQuery();
+
+	            // Process the results here
+	            while (resultSet.next()) {
+	                // Retrieve data from the result set
+	            	 String invoiceNum = resultSet.getString("invoiceNo");
+	                 String company = resultSet.getString("company");
+	                 String sourceAddress = resultSet.getString("sourceAddress");
+	                 String destinationAddress = resultSet.getString("destinationAddress");
+	                 String rate = resultSet.getString("rate");
+	                 String driverName = resultSet.getString("driver");
+	                 String date = resultSet.getString("date");
+	                 // Process retrieved data here
+	                 // Create the invoice statement by retrieving the user input data
+	                 StringBuilder report = new StringBuilder();
+	                 report.append("Invoice Number:").append(invoiceNum).append("\n");
+	                 report.append("Company:").append(company).append("\n");
+	                 report.append("Source Address:").append(sourceAddress).append("\n");
+	                 report.append("Destination Address:").append(destinationAddress).append("\n");
+	                 report.append("Rate:").append(rate).append("\n");
+	                 report.append("Driver:").append(driverName).append("\n");
+	                 report.append("Date:").append(date).append("\n");
+	                 
+	                 JOptionPane.showMessageDialog(null, report.toString(), "Java Haulage and Trucking Selected Period Order Report", JOptionPane.INFORMATION_MESSAGE);
+	                 logger.info("Successfully executed driver querty");
+	            }
+
+	            // Close the ResultSet and PreparedStatement
+	            resultSet.close();
+	            preparedStatement.close();
+
+			}
+			catch(SQLException e)
+			{
+				e.printStackTrace();
+				logger.error("Failed to retrieve data for the specified driver");
+			}
+		}
+}
