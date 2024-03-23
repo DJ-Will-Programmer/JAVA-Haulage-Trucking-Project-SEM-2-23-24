@@ -248,6 +248,7 @@ public class Staff
 				+ "\nStatus:\t\t\t\t" + status;
 	}
 	
+	/*sets the staffId as a randomly-generated string consisting of 6 numerical values*/
 	public String generateStaffId()
 	{
 		String chars = "0123456789";
