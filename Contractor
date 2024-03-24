@@ -13,10 +13,10 @@ import javax.persistence.Table;
 public class Contractor extends Staff
 {
 	//start and end date of contract work
-	@Column(name="startDate")
+	@Column(name="contractStartDate")
 	protected LocalDate startDate;
 	
-	@Column(name="endDate")
+	@Column(name="contractEndDate")
 	protected LocalDate endDate;
 	
 	public Contractor() //default constructor
