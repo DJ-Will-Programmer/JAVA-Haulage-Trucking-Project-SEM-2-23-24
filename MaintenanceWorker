@@ -1,0 +1,63 @@
+//Tianna Lue-Lim: 2109411
+
+package staff;
+
+import java.time.LocalDate;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+/*hibernate mapping*/
+@Entity
+@Table(name="maintenance") //table name in db
+
+public class MaintenanceWorker extends Contractor
+{
+	@Column(name="specialization")
+	private int specialization; //specialization/type of maintenance worker: electrical, janitor, technician, mechanic
+	
+	//default constructor
+	public MaintenanceWorker()
+	{
+		super();
+		specialization = 0;
+	}
+	
+	//primary constructor
+	public MaintenanceWorker(String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
+			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, 
+			LocalDate start, LocalDate end, int specialization)
+	{
+		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
+				officeLocation, position, address1, address2, postOffice, parish, status, start, end);
+		this.specialization = specialization;
+	}
+	
+	//copy constructor
+	public MaintenanceWorker(MaintenanceWorker maintenanceWorker)
+	{
+		super(maintenanceWorker.staffId, maintenanceWorker.firstName, maintenanceWorker.lastName, maintenanceWorker.dateOfBirth,
+				maintenanceWorker.telephone, maintenanceWorker.email, maintenanceWorker.officeLocation, maintenanceWorker.position, 
+				maintenanceWorker.address1, maintenanceWorker.address2, maintenanceWorker.postOffice, maintenanceWorker.parish, 
+				maintenanceWorker.status, maintenanceWorker.startDate, maintenanceWorker.endDate);
+		this.specialization = maintenanceWorker.specialization;
+	}
+
+	/*accessor and mutator*/
+	public int getSpecialization() 
+	{
+		return specialization;
+	}
+	public void setSpecialization(int specialization)
+	{
+		this.specialization = specialization;
+	}
+	
+	/*toString method*/
+	@Override
+	public String toString()
+	{
+		return super.toString() + "\nSpecialization:\t\t" + specialization;
+	}
+}
