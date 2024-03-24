@@ -1,0 +1,59 @@
+//Tianna Lue-Lim: 2109411
+
+package staff;
+
+import java.time.LocalDate;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="drivers")
+public class ContractedDriver extends Contractor
+{
+	@Column(name="numberOfTrips")
+	private int numberOfTrips; //used to calculate salary
+	
+	public ContractedDriver() //default constructor
+	{
+		super();
+		numberOfTrips = 0;
+	}
+	
+	//primary constructor
+	public ContractedDriver (String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
+			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, 
+			LocalDate start, LocalDate end, int trips)
+	{
+		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
+				officeLocation, position, address1, address2, postOffice, parish, status, start, end);
+		this.numberOfTrips = trips;
+	}
+	
+	public ContractedDriver(ContractedDriver contractedDriver) //copy constructor
+	{
+		super(contractedDriver.staffId, contractedDriver.firstName, contractedDriver.lastName, contractedDriver.dateOfBirth, contractedDriver.telephone,
+				contractedDriver.email, contractedDriver.officeLocation, contractedDriver.position, contractedDriver.address1, 
+				contractedDriver.address2, contractedDriver.postOffice, contractedDriver.parish, contractedDriver.status, 
+				contractedDriver.startDate, contractedDriver.endDate);
+		this.numberOfTrips = contractedDriver.numberOfTrips;
+	}
+
+	public int getNumberOfTrips() //accessor
+	{
+		return numberOfTrips;
+	}
+
+	public void setNumberOfTrips(int numberOfTrips) //mutator
+	{
+		this.numberOfTrips = numberOfTrips;
+	}
+	
+	/*toString method*/
+	@Override
+	public String toString()
+	{
+		return super.toString() + "\nTrips This Month:\t\t" + numberOfTrips;
+	}
+}
