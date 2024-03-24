@@ -14,7 +14,7 @@ import javax.persistence.Table;
 
 public class MaintenanceWorker extends Contractor
 {
-	@Column(name="specialization")
+	@Column(name="maintenanceSpecialization")
 	private int specialization; //specialization/type of maintenance worker: electrical, janitor, technician, mechanic
 	
 	//default constructor
