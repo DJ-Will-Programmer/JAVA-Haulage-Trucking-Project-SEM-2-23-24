@@ -1,42 +1,34 @@
 //Tianna Lue-Lim: 2109411
+package apgrouproject;
 
-package forms;
-
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.ScrollPane;
+import javax.swing.JInternalFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
-
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import factories.SessionFactoryBuilder;
-import staff.Staff;
-
-import java.util.Random;
-import java.util.Scanner;
+import dbConnection.SessionFactoryBuilder;
 import java.util.stream.IntStream;
+public class StaffForm extends JInternalFrame {
+	
+	private static final long serialVersionUID = 1L;
 
-public class CreateStaffForm 
-{
-	/*class attributes*/
+    /*class attributes*/
 	private JFrame frame;
 	private JButton submitButton;
-	
+	private JButton clearButton;
+	private JPanel panel;
 	private JLabel firstNameLabel;
 	private JTextField firstNameTxt;
 	private JLabel lastNameLabel;
@@ -85,21 +77,23 @@ public class CreateStaffForm
 	private JLabel statusLabel;
 	private final String statusOptions[] = {"Part-Time", "Full-Time"};
 	private JComboBox<String> statusComboBox;
-	
-	
-	public CreateStaffForm() //parameter-less or default constructor
+	 public static final Logger logger = LogManager.getLogger(StaffForm.class);
+	//parameter-less or default constructor
+	public StaffForm()
 	{
-		frame = new JFrame("Create Employee"); //initialize JFrame object
-		
-		/*configure frame object*/
-		frame.setSize(400, 400);
-		frame.setLayout(null);
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				
-		submitButton = new JButton("Submit"); //initialize button object
+		super("Java Haulage and Trucking Staff Form", true, true, true, true);
+        //Adding the newWindowsProperties method so that the rate sheet window can display
+        newWindowProperties();
+        panel = new JPanel(); // Initialize JPanel
+        panel.setLayout(null); // Use null layout for manual positioning of components
+        this.add(panel);
+        submitButton = new JButton("Submit"); //initialize button object
 		submitButton.setBounds(150, 660, 230, 30); //define position and size of button
-		frame.add(submitButton); //add the button to the frame	
+		panel.add(submitButton); //add the button to the frame	
+		
+		clearButton = new JButton("Clear");//initialize button object
+		clearButton.setBounds(150, 720, 250, 30);
+		panel.add(clearButton);
 		
 		/*initialize JLabels*/
 		firstNameLabel = new JLabel("First Name: ");
@@ -174,124 +168,137 @@ public class CreateStaffForm
 		statusComboBox.setBounds(160, 610, 320, 30);
 				
 		/*add components to frame*/
-		frame.add(firstNameLabel);
-		frame.add(firstNameTxt);
-		frame.add(lastNameLabel);
-		frame.add(lastNameTxt);
-		frame.add(dateOfBirthLabel);
-		frame.add(dateLabel);
-		frame.add(monthLabel);
-		frame.add(yearLabel);
-		frame.add(dateComboBox);
-		frame.add(monthComboBox);
-		frame.add(yearComboBox);
-		frame.add(telephoneLabel);
-		frame.add(telephoneTxt);
-		frame.add(emailLabel);
-		frame.add(emailTxt);
-		frame.add(officeLocationLabel);
-		frame.add(officeLocationComboBox);
-		frame.add(positionLabel);
-		frame.add(positionComboBox);
-		frame.add(address1Label);
-		frame.add(address1Txt);
-		frame.add(address2Label);
-		frame.add(address2Txt);
-		frame.add(postOfficeLabel);
-		frame.add(postOfficeTxt);
-		frame.add(parishLabel);
-		frame.add(parishComboBox);
-		frame.add(statusLabel);
-		frame.add(statusComboBox);
-	
-		/*add an action listener to the button*/
-		submitButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{										
-				/*store data entered in form into variables*/
-				String firstName = firstNameTxt.getText();
-				String lastName = lastNameTxt.getText();
-				String dateString = dateComboBox.getSelectedItem().toString();
-				String monthString = monthComboBox.getSelectedItem().toString();
-				String yearString = yearComboBox.getSelectedItem().toString();
-				String telephone = telephoneTxt.getText();
-				String email = emailTxt.getText();
-				String officeLocation = officeLocationComboBox.getSelectedItem().toString();
-				String position = positionComboBox.getSelectedItem().toString();
-				String address1 = address1Txt.getText();
-				String address2 = address2Txt.getText();
-				String postOffice = postOfficeTxt.getText();
-				String parish = parishComboBox.getSelectedItem().toString();
-				String status = statusComboBox.getSelectedItem().toString();
-				
-				/*convert date values to int and store as date*/
-				int date = Integer.parseInt(dateString);
-				int month = Integer.parseInt(monthString);
-				int year = Integer.parseInt(yearString);
-				LocalDate dateOfBirth = LocalDate.of(year, month, date);
-				
-				Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, 
-						 officeLocation, position, address1, address2, postOffice, parish, status);
-				createStaffMember(staff);
-				
-				JOptionPane.showMessageDialog(
-						frame, "Employee record created: " + firstName + " " + lastName, 
-						"Success", 
-						JOptionPane.INFORMATION_MESSAGE);
-				
-				/*clear form data*/
-				/*firstNameTxt.setText("");
-				lastNameTxt.setText("");
-				dateComboBox.setSelectedIndex(0);
-				monthComboBox.setSelectedIndex(0);
-				yearComboBox.setSelectedIndex(0);
-				telephoneTxt.setText("");
-				emailTxt.setText("");
-				officeLocationComboBox.setSelectedIndex(0);
-				positionComboBox.setSelectedIndex(0);
-				address1Txt.setText("");
-				address2Txt.setText("");
-				postOfficeTxt.setText("");
-				parishComboBox.setSelectedIndex(0);
-				statusComboBox.setSelectedItem(LocalDate.now().getYear());*/
-			}
-		});
+		panel.add(firstNameLabel);
+		panel.add(firstNameTxt);
+		panel.add(lastNameLabel);
+		panel.add(lastNameTxt);
+		panel.add(dateOfBirthLabel);
+		panel.add(dateLabel);
+		panel.add(monthLabel);
+		panel.add(yearLabel);
+		panel.add(dateComboBox);
+		panel.add(monthComboBox);
+		panel.add(yearComboBox);
+		panel.add(telephoneLabel);
+		panel.add(telephoneTxt);
+		panel.add(emailLabel);
+		panel.add(emailTxt);
+		panel.add(officeLocationLabel);
+		panel.add(officeLocationComboBox);
+		panel.add(positionLabel);
+		panel.add(positionComboBox);
+		panel.add(address1Label);
+		panel.add(address1Txt);
+		panel.add(address2Label);
+		panel.add(address2Txt);
+		panel.add(postOfficeLabel);
+		panel.add(postOfficeTxt);
+		panel.add(parishLabel);
+		panel.add(parishComboBox);
+		panel.add(statusLabel);
+		panel.add(statusComboBox);
+    	
+    		/*add an action listener to the button to write records to the database*/
+    		submitButton.addActionListener(new ActionListener()
+    		{
+    			public void actionPerformed(ActionEvent e)
+    			{										
+    				/*store data entered in form into variables*/
+    				String firstName = firstNameTxt.getText();
+    				String lastName = lastNameTxt.getText();
+    				String dateString = dateComboBox.getSelectedItem().toString();
+    				String monthString = monthComboBox.getSelectedItem().toString();
+    				String yearString = yearComboBox.getSelectedItem().toString();
+    				String telephone = telephoneTxt.getText();
+    				String email = emailTxt.getText();
+    				String officeLocation = officeLocationComboBox.getSelectedItem().toString();
+    				String position = positionComboBox.getSelectedItem().toString();
+    				String address1 = address1Txt.getText();
+    				String address2 = address2Txt.getText();
+    				String postOffice = postOfficeTxt.getText();
+    				String parish = parishComboBox.getSelectedItem().toString();
+    				String status = statusComboBox.getSelectedItem().toString();
+    				
+    				/*convert date values to int and store as date*/
+    				int date = Integer.parseInt(dateString);
+    				int month = Integer.parseInt(monthString);
+    				int year = Integer.parseInt(yearString);
+    				LocalDate dateOfBirth = LocalDate.of(year, month, date);
+    				
+    				Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, 
+    						 officeLocation, position, address1, address2, postOffice, parish, status);
+    				createStaffMember(staff);
+    				
+    				JOptionPane.showMessageDialog(
+    						frame, "Employee record created: " + firstName + " " + lastName, 
+    						"Success", 
+    						JOptionPane.INFORMATION_MESSAGE);
+    				logger.info("Staff data successfully written to the database");
+    				
+    				
+    			}
+    		});
+    		/*Add action listener to the button to clear form data*/
+    		clearButton.addActionListener(new ActionListener()
+    				{
+    					public void actionPerformed(ActionEvent e)
+    					{
+    						//clear form data
+    	    				firstNameTxt.setText("");
+    	    				lastNameTxt.setText("");
+    	    				dateComboBox.setSelectedIndex(0);
+    	    				monthComboBox.setSelectedIndex(0);
+    	    				yearComboBox.setSelectedIndex(0);
+    	    				telephoneTxt.setText("");
+    	    				emailTxt.setText("");
+    	    				officeLocationComboBox.setSelectedIndex(0);
+    	    				positionComboBox.setSelectedIndex(0);
+    	    				address1Txt.setText("");
+    	    				address2Txt.setText("");
+    	    				postOfficeTxt.setText("");
+    	    				parishComboBox.setSelectedIndex(0);
+    	    				statusComboBox.setSelectedItem(LocalDate.now().getYear());
+    	    				logger.info("Staff From data has been cleared!!");
+    					}
+    				});
+    	}
+    	
+    	/*create object of the staff class using the data obtained from the form*/
+    	public static void createStaffMember(Staff dataFromForm)
+    	{	
+    		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+    		Transaction transaction = null;
+    		
+    		try
+    		{
+    			transaction = session.beginTransaction();
+    			Staff staff = new Staff(dataFromForm);
+    			String staffId = staff.generateStaffId();
+    			staff.setStaffId(staffId);
+    			System.out.println(staff.toString());
+    			
+    			session.save(staff);
+    			transaction.commit();
+    			
+    		}
+    		catch (RuntimeException re)
+    		{
+    			if(transaction != null)
+    			{
+    				transaction.rollback();
+    			}
+    		}
+    		finally
+    		{
+    			session.close();
+    		}
 	}
 	
-	/*create object of the staff class using the data obtained from the form*/
-	public static void createStaffMember(Staff dataFromForm)
-	{	
-		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-		Transaction transaction = null;
-		
-		try
-		{
-			transaction = session.beginTransaction();
-			Staff staff = new Staff(dataFromForm);
-			String staffId = staff.generateStaffId();
-			staff.setStaffId(staffId);
-			System.out.println(staff.toString());
-			
-			session.save(staff);
-			transaction.commit();
-			
-		}
-		catch (RuntimeException re)
-		{
-			if(transaction != null)
-			{
-				transaction.rollback();
-			}
-		}
-		finally
-		{
-			session.close();
-		}
-	}
-	
-	public static void main(String[] args) 
+	//Method sets the properties of the Staff window
+	public void newWindowProperties()
 	{
-		new CreateStaffForm();
+		this.setSize(600, 450);
+		this.setVisible(true);
+		this.setResizable(true);
 	}
 }
