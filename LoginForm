@@ -1,0 +1,167 @@
+//Tianna Lue-Lim: 2109411
+
+package forms;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import org.hibernate.Session;
+
+import factories.SessionFactoryBuilder;
+import staff.Staff;
+
+/*allow admin members to log in using their username (staffId) and password*/
+public class LoginForm 
+{
+	/*attributes*/
+	private JFrame loginFrame;
+	private JButton loginButton;
+	private JLabel staffIdLabel;
+	private JTextField staffIdTxt;
+	private JLabel passwordLabel;
+	private JPasswordField passwordTxt;
+
+	//default constructor
+	public LoginForm()
+	{
+		/*initialize and set bounds of JFrame and its attributes*/
+		loginFrame = new JFrame("Administrator Login Window");
+		loginFrame.setSize(400, 200);
+		loginFrame.setLayout(null);
+		loginFrame.setVisible(true);
+		loginFrame.setResizable(true);
+		loginFrame.setLocationRelativeTo(null);
+		loginFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //disable close icon
+		
+		loginButton = new JButton("Login");
+		loginButton.setBounds(130, 120, 100, 30); //x, y, width, height
+		loginFrame.add(loginButton); //add button to frame
+		
+		staffIdLabel = new JLabel("Staff ID: ");
+		passwordLabel = new JLabel("Password: ");
+		staffIdTxt = new JTextField(200);
+		passwordTxt = new JPasswordField(200);
+		
+		staffIdLabel.setBounds(30, 30, 100, 30);
+		passwordLabel.setBounds(30, 75, 100, 30); 
+		staffIdTxt.setBounds(100, 30, 200, 30);
+		passwordTxt.setBounds(100, 75, 200, 30);
+		
+		/*add elements to frame*/
+		loginFrame.add(staffIdLabel);
+		loginFrame.add(staffIdTxt);
+		loginFrame.add(passwordLabel);
+		loginFrame.add(passwordTxt);
+		
+		/*add action listener to button*/
+		loginButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				//get value from form fields and place in new variables
+				String id = staffIdTxt.getText();
+				@SuppressWarnings("deprecation")
+				String password = passwordTxt.getText();
+				
+				if(id.length() != 6) //check if ID number entered is too short/long and informs the user
+				{
+					JOptionPane.showMessageDialog(loginFrame, "Staff ID must be 6 digits", "Error", JOptionPane.INFORMATION_MESSAGE);				
+				}
+				else if(password.isEmpty()) //check if no value was entered for password and inform user that the field cannot be left empty
+				{
+					JOptionPane.showMessageDialog(loginFrame, "Password cannot be empty", "Error", JOptionPane.INFORMATION_MESSAGE);
+				}
+				else
+				{
+					Staff admin = retrieveEmployee(id); //check if a staff record exists that corresponds with the ID entered
+					boolean passwordCheck = checkPassword(password, id); //check if the current password-ID combo exists for a record in the table
+					
+					if(admin == null)
+					{
+						//informing the user that the ID they entered does not currently exist
+						JOptionPane.showMessageDialog(loginFrame, "Staff member with ID number " + id + " not found in database.", "Invalid ID number entered", JOptionPane.INFORMATION_MESSAGE);
+					}
+					else if(passwordCheck == false)
+					{
+						JOptionPane.showMessageDialog(loginFrame, "Incorrect password entered.", "Incorrect password", JOptionPane.INFORMATION_MESSAGE);
+					}
+					else
+					{
+						//display welcome message
+						JOptionPane.showMessageDialog(loginFrame, "Welcome, " + admin.getFirstName() + " " + admin.getLastName(), "Welcome", JOptionPane.INFORMATION_MESSAGE);
+						loginFrame.dispose(); //close login window after correct ID and password are entered
+					}
+				}
+			}
+		});
+		
+	}
+
+	/*checl to see of ID number entered exists in the table*/
+	public static Staff retrieveEmployee(String id) 
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Staff admin = new Staff();
+
+		try 
+		{
+			admin = session.get(Staff.class, id);
+
+			if (admin != null) //admin will be null if the ID entered does not exist in the table
+			{
+				return admin;
+			} 
+			else 
+			{
+				System.err.println("Employee with ID number " + id + " does not exist.");
+			}
+		} 
+		catch (Exception e) 
+		{
+			System.err.println("ID not found. " + e.getMessage());
+		} 
+		finally 
+		{
+			session.close();
+		}
+
+		return admin;
+	}
+	
+	/*check to see if password enters is correct for the already validated id number*/
+	public static boolean checkPassword(String pw, String id)
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Staff admin = new Staff();
+		
+		try 
+		{
+			admin = session.get(Staff.class, id);
+
+			if (admin.getStaffId().equals(id)) 
+			{
+				System.out.println("Log-in successful.");
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			System.err.println("Error attempting to log in: " + e.getMessage());
+		}
+		
+		return false;
+	}
+	
+	public static void main(String[] args) 
+	{
+		new LoginForm();
+	}
+
+}
