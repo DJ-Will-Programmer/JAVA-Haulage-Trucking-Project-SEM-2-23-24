@@ -46,20 +46,20 @@ public class Contractor extends Staff
 	}
 	
 	/*accessors and mutators*/
-	public LocalDate getStartDate() 
+	public LocalDate getContractStartDate() 
 	{
 		return contractStartDate;
 	}
-	public void setStartDate(LocalDate startDate)
+	public void setContractStartDate(LocalDate startDate)
 	{
 		this.contractStartDate = startDate;
 	}
 
-	public LocalDate getEndDate()
+	public LocalDate getContractEndDate()
 	{
 		return contractEndDate;
 	}
-	public void setEndDate(LocalDate endDate)
+	public void setContractEndDate(LocalDate endDate)
 	{
 		this.contractEndDate = endDate;
 	}
