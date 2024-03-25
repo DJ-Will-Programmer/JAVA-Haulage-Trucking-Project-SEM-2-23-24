@@ -14,16 +14,16 @@ public class Contractor extends Staff
 {
 	//start and end date of contract work
 	@Column(name="contractStartDate")
-	protected LocalDate startDate;
+	protected LocalDate contractStartDate;
 	
 	@Column(name="contractEndDate")
-	protected LocalDate endDate;
+	protected LocalDate contractEndDate;
 	
 	public Contractor() //default constructor
 	{
 		super();
-		startDate = LocalDate.of(2024,1,1); //yyyy, mm, dd
-		endDate = LocalDate.of(2024,12,12);
+		contractStartDate = LocalDate.of(2024,1,1); //yyyy, mm, dd
+		contractEndDate = LocalDate.of(2024,12,12);
 	}
 	
 	//primary constructor
@@ -32,8 +32,8 @@ public class Contractor extends Staff
 			LocalDate start, LocalDate end)
 	{
 		super(staffId, firstName, lastName, dateOfBirth, telephone, email, officeLocation, position, address1, address2, postOffice, parish, status);
-		this.startDate = start;
-		this.endDate = end;
+		this.contractStartDate = start;
+		this.contractEndDate = end;
 	}
 	
 	public Contractor(Contractor contractor) //copy constructor
@@ -41,33 +41,33 @@ public class Contractor extends Staff
 		super(contractor.staffId, contractor.firstName, contractor.lastName, contractor.dateOfBirth, contractor.telephone, contractor.email, 
 				contractor.officeLocation, contractor.position, contractor.address1, contractor.address2, contractor.postOffice, 
 				contractor.parish, contractor.status);
-		this.startDate = contractor.startDate;
-		this.endDate = contractor.endDate;
+		this.contractStartDate = contractor.contractStartDate;
+		this.contractEndDate = contractor.contractEndDate;
 	}
 	
 	/*accessors and mutators*/
 	public LocalDate getStartDate() 
 	{
-		return startDate;
+		return contractStartDate;
 	}
 	public void setStartDate(LocalDate startDate)
 	{
-		this.startDate = startDate;
+		this.contractStartDate = startDate;
 	}
 
 	public LocalDate getEndDate()
 	{
-		return endDate;
+		return contractEndDate;
 	}
 	public void setEndDate(LocalDate endDate)
 	{
-		this.endDate = endDate;
+		this.contractEndDate = endDate;
 	}
 
 	/*toString*/
 	@Override
 	public String toString()
 	{
-		return super.toString() + "\nContract Start Date:\t\t" + startDate + "\nContract End Date:\t\t" + endDate;
+		return super.toString() + "\nContract Start Date:\t\t" + contractStartDate + "\nContract End Date:\t\t" + contractEndDate;
 	}
 }
