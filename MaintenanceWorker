@@ -40,7 +40,7 @@ public class MaintenanceWorker extends Contractor
 		super(maintenanceWorker.staffId, maintenanceWorker.firstName, maintenanceWorker.lastName, maintenanceWorker.dateOfBirth,
 				maintenanceWorker.telephone, maintenanceWorker.email, maintenanceWorker.officeLocation, maintenanceWorker.position, 
 				maintenanceWorker.address1, maintenanceWorker.address2, maintenanceWorker.postOffice, maintenanceWorker.parish, 
-				maintenanceWorker.status, maintenanceWorker.startDate, maintenanceWorker.endDate);
+				maintenanceWorker.status, maintenanceWorker.contractStartDate, maintenanceWorker.contractEndDate);
 		this.specialization = maintenanceWorker.specialization;
 	}
 
