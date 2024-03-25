@@ -31,12 +31,13 @@ public class ContractedDriver extends Contractor
 		this.numberOfTrips = trips;
 	}
 	
-	public ContractedDriver(ContractedDriver contractedDriver) //copy constructor
+	//copy constructor
+	public ContractedDriver(ContractedDriver contractedDriver)
 	{
 		super(contractedDriver.staffId, contractedDriver.firstName, contractedDriver.lastName, contractedDriver.dateOfBirth, contractedDriver.telephone,
 				contractedDriver.email, contractedDriver.officeLocation, contractedDriver.position, contractedDriver.address1, 
 				contractedDriver.address2, contractedDriver.postOffice, contractedDriver.parish, contractedDriver.status, 
-				contractedDriver.startDate, contractedDriver.endDate);
+				contractedDriver.contractStartDate, contractedDriver.contractEndDate);
 		this.numberOfTrips = contractedDriver.numberOfTrips;
 	}
 
