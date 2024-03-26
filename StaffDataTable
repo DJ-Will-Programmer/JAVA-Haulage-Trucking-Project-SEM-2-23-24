@@ -11,6 +11,9 @@ import javax.swing.table.DefaultTableModel;
 
 import staff.Staff;
 
+/*this class calls a function from the Staff class to retrieve Staff data
+and then uses the data retrieves to populate a table, which is displayed to the user inside a JFrame*/
+
 public class StaffDataTable //JTable to display staff data from the database
 {
 	private JFrame dataFrame; //JFrame to hold table
