@@ -3,6 +3,7 @@
 package staff;
 
 import java.time.LocalDate; //to store date objects
+import java.util.List;
 import java.util.Random;
 
 /*needed for hibernate mapping*/
@@ -10,6 +11,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.Session;
+
+import factories.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
@@ -263,6 +268,19 @@ public class Staff
 			stringBuilder.append(chars.charAt(randomId.nextInt(chars.length())));
 		}
 		return stringBuilder.toString();
+	}
+	
+	/*retrieve all staff and place in list*/
+	public List<Staff> readAllStaff()
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		List<Staff> staffList = session.createQuery("FROM Staff", Staff.class).list();;
+		
+		for (Staff staff : staffList)
+		{
+			System.out.println(staff + "\n");
+		}
+		return staffList;
 	}
 	
 }
