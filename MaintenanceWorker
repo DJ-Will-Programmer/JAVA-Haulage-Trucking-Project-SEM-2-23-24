@@ -7,6 +7,12 @@ import java.time.LocalDate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.swing.JOptionPane;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import factories.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
@@ -15,19 +21,19 @@ import javax.persistence.Table;
 public class MaintenanceWorker extends Contractor
 {
 	@Column(name="maintenanceSpecialization")
-	private int specialization; //specialization/type of maintenance worker: electrical, janitor, technician, mechanic
+	private String specialization; //specialization/type of maintenance worker: electrical, janitor, technician, mechanic
 	
 	//default constructor
 	public MaintenanceWorker()
 	{
 		super();
-		specialization = 0;
+		specialization = "";
 	}
 	
 	//primary constructor
 	public MaintenanceWorker(String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
 			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, 
-			LocalDate start, LocalDate end, int specialization)
+			LocalDate start, LocalDate end, String specialization)
 	{
 		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
 				officeLocation, position, address1, address2, postOffice, parish, status, start, end);
@@ -45,11 +51,11 @@ public class MaintenanceWorker extends Contractor
 	}
 
 	/*accessor and mutator*/
-	public int getSpecialization() 
+	public String getSpecialization() 
 	{
 		return specialization;
 	}
-	public void setSpecialization(int specialization)
+	public void setSpecialization(String specialization)
 	{
 		this.specialization = specialization;
 	}
@@ -59,5 +65,44 @@ public class MaintenanceWorker extends Contractor
 	public String toString()
 	{
 		return super.toString() + "\nSpecialization:\t\t" + specialization;
+	}
+	
+	public void addSpecialization(MaintenanceWorker staff, String specialization)
+	{
+		/*add specialization to maintenance types in the database*/
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+			
+		try
+		{
+			transaction = session.beginTransaction();
+			staff.setSpecialization(specialization);
+				
+			session.update(staff); //update staff table with new data
+			transaction.commit();
+				
+			System.out.println(staff.toString());
+				
+				JOptionPane.showMessageDialog(null, "Maintenance specialization has been set.", "Success.", JOptionPane.INFORMATION_MESSAGE);
+			}
+			catch (RuntimeException re)
+			{
+				if(transaction != null)
+				{
+					transaction.rollback();
+				}
+			}
+			catch (Exception ex)
+			{
+				if(transaction != null)
+				{
+					transaction.rollback();
+				}
+				System.err.println("Error setting specialization: " + ex.getMessage());
+			}
+			finally
+			{
+				session.close();
+			}
 	}
 }
