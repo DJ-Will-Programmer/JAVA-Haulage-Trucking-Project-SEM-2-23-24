@@ -17,33 +17,38 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import com.toedter.calendar.JCalendar;
+import dbConnection.FormDatabase;
+import dbConnection.OrdersDatabase;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import DBConnection.FormDatabase;
 public class BookingForm extends JInternalFrame{
 	
 	private static final long serialVersionUID = 1L;
-    private JButton generateInvoice, clear;
+    private JButton generateInvoice, clear, orderPeriod, driverOrders;
     private JTextField nameField, emailField, phoneField;
     private JTextArea addressArea;
     private JPanel panel;
     private GridBagConstraints gbc;
     private JComboBox<String> routeAndRateComboBox;
-  //  private RateSheet rateSheet;
     private final String timeOfDelivery[] = {"9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"};
     private JComboBox<String> timeComboBox;
     private final String haulageType[] = {"sand", "gravel", "dirt", "marl", "equipment", "block", "steel", "boxes", "food items", "cement"};
     private JComboBox<String> haulageComboBox;
+    private JComboBox<String>driverComboBox;
+    private JComboBox<String>driver;
     private JCalendar date;
     public static final Logger logger = LogManager.getLogger(BookingForm.class);
     // Creating form
     public BookingForm() {
         // Title of the window
         super("Java Haulage and Trucking Booking Form", true, true, true, true);
+        
       //Adding the newWindowsProperties method so that the rate sheet window can display
         newWindowProperties();
+        
         // Create a JPanel with GridBagLayout
         panel = new JPanel(new GridBagLayout());
         getContentPane().add(panel);
@@ -107,11 +112,11 @@ public class BookingForm extends JInternalFrame{
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 1;
-        panel.add(new JLabel("Route and Rate:"), gbc);
+        panel.add(new JLabel("Route:"), gbc);
 
         // Adding route and rate combo box
-        RateSheet rateSheet= new RateSheet();
-        routeAndRateComboBox = rateSheet.getRate();
+        RateSheet rateSheet = new RateSheet();
+        routeAndRateComboBox = rateSheet.displayRouteAndRate();
         gbc.gridx = 1;
         gbc.gridy = 4;
         gbc.gridwidth = 2;
@@ -135,13 +140,14 @@ public class BookingForm extends JInternalFrame{
         gbc.gridy = 6;
         gbc.gridwidth = 1;
         panel.add(new JLabel("Day: "), gbc);
-
-        // Adding date option using the JCalendar class
+        
+        	// Adding date option using the JCalendar class
         date = new JCalendar();
         gbc.gridx = 1;
         gbc.gridy = 6;
         gbc.gridwidth = 2;
         panel.add(date, gbc);
+       
         // adding label for time
         gbc.gridx = 0;
         gbc.gridy = 7;
@@ -155,10 +161,24 @@ public class BookingForm extends JInternalFrame{
         gbc.gridwidth = 2;
         panel.add(timeComboBox, gbc); 
         
+        //Adding label to get the driver
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Driver: "),gbc);
+        
+        //Adding driver combo box to the form
+        //Calling the staff class to retrieve the function that generates the code
+        
+       driver = driverForBooking();
+        gbc.gridx =1;
+        gbc.gridy = 8;
+        gbc.gridwidth =2;
+        panel.add(driver, gbc);
         // Adding the generate Invoice button
         generateInvoice = new JButton("Generate Invoice");
         gbc.gridx = 0;
-        gbc.gridy = 8;
+        gbc.gridy = 9;
         gbc.gridwidth = 2;
         panel.add(generateInvoice, gbc);
 
@@ -175,8 +195,8 @@ public class BookingForm extends JInternalFrame{
 
         // Adding the clear button to the form
         clear = new JButton("Clear Form");
-        gbc.gridx = 1;
-        gbc.gridy = 8;
+        gbc.gridx = 2;
+        gbc.gridy = 9;
         gbc.gridwidth = 2;
         panel.add(clear, gbc);
 
@@ -191,8 +211,56 @@ public class BookingForm extends JInternalFrame{
             }
         }); 
 
+     //Adding the generate orders by data button
+       orderPeriod = new JButton("Generate Orders By Period");
+       gbc.gridx = 0;
+       gbc.gridy = 10;
+       gbc.gridwidth = 2;
+       panel.add(orderPeriod, gbc);
+       
+       //Adding action listener to the oerderPeriod button
+       orderPeriod.addActionListener(new ActionListener()
+    		   {
+    	   		@Override
+    	   		public void actionPerformed(ActionEvent e)
+    	   		{
+    	   			//Asking the admin to enter the start period for the query
+    	   			String startPeriod = JOptionPane.showInputDialog(null, "Enter the start date in the form yyyy-MM-dd", "Java Haulage and Trucking Start Period Input",
+    	   					JOptionPane.INFORMATION_MESSAGE);
+    	   			
+    	   		//Asking the admin to enter the end period for the query
+    	   			String endPeriod = JOptionPane.showInputDialog(null, "Enter the end date in the form yyyy-MM-dd", "Java Haulage and Trucking End Period Input",
+    	   					JOptionPane.INFORMATION_MESSAGE);
+    	   			OrdersDatabase odbDate = new OrdersDatabase();
+    	   			//Calling the method from the OrdersDatabase class
+    	   			odbDate.searchByPeriod(startPeriod, endPeriod);
+    	   			
+    	   		}
+    		   });
+       
+       //Adding the driverOrders button the form
+       driverOrders = new JButton("Generate Driver Orders");
+       gbc.gridx = 2;
+       gbc.gridy = 10;
+       gbc.gridwidth = 2;
+       panel.add(driverOrders, gbc);
+       
+       //Adding action listener to the driverOrders button
+       driverOrders.addActionListener(new ActionListener()
+    		   {
+    	   		@Override
+    	   		public void actionPerformed(ActionEvent e)
+    	   		{
+    	   		//Asking the admin to enter the name of driver the query
+    	   			String driverName = JOptionPane.showInputDialog(null, "Enter the name of the driver you want to search for:", "Java Haulage and Trucking Driver Search Input",
+    	   					JOptionPane.INFORMATION_MESSAGE);
+    	   			//Calling the method from the OrdersDatabase class
+    	   			OrdersDatabase odbDriver = new OrdersDatabase();
+    	   			odbDriver.searchByDriver(driverName);
+    	   		}
+    		   });
     }
-    
+   
     //Method sets the properties of the booking form window
     public void newWindowProperties()
     {
@@ -202,6 +270,13 @@ public class BookingForm extends JInternalFrame{
     }
     // Method gets the information for an invoice for an order
     private void getInvoice() {
+    	
+    	//Calling method to return the rate associated with a particular route from rate sheet class
+        RateSheet rateSheet = new RateSheet();
+        double rate = rateSheet.getRate(routeAndRateComboBox);
+        
+        //Convert the double to a string to write it to invoice below
+        String newRate = Double.toString(rate);
         // Create the invoice statement by retrieving the user input data
         StringBuilder invoice = new StringBuilder();
         // Creating a variable to store the invoice generated number
@@ -217,8 +292,10 @@ public class BookingForm extends JInternalFrame{
 
         // Retrieving route and rate from the route and rate combo box
         String selectedRouteAndRate = (String) routeAndRateComboBox.getSelectedItem();
-        invoice.append("Route and Rate: ").append(selectedRouteAndRate).append("\n");
-
+        invoice.append("Route: ").append(selectedRouteAndRate).append("\n");
+        
+        //Writing the rate as a string from the function below
+        invoice.append("Rate: ").append(newRate).append("\n");
         // Retrieving haulage type from the haulage combo box
         String selectedHaulageType = (String) haulageComboBox.getSelectedItem();
         invoice.append("Haulage Type: ").append(selectedHaulageType).append("\n");
@@ -243,17 +320,28 @@ public class BookingForm extends JInternalFrame{
         String addressValue = addressArea.getText();
         String phoneValue = phoneField.getText();
         String emailValue = emailField.getText();
-        String routeAndRateValue = (String) routeAndRateComboBox.getSelectedItem();
+        String routeValue = (String) routeAndRateComboBox.getSelectedItem();
+       
         String haulageValue = (String) haulageComboBox.getSelectedItem();
         String timeValue = (String) timeComboBox.getSelectedItem();
         
-        //Passing String attributes to database method
+        //Passing String attributes to FormDatabase method
         FormDatabase formDB = new FormDatabase();
         		formDB.writeToDatabse(invoiceNoValue, dateValue, nameValue, addressValue, phoneValue,
-        		emailValue, routeAndRateValue, haulageValue, timeValue);
-      
+        		emailValue, routeValue, rate, haulageValue, timeValue);
+        		
+       //Passing the selectedRouteAndRate object to the method to retrieve the specific location the order was made from
+       RateSheet rSheet1 = new RateSheet();
+       String companyAddress = rSheet1.getSourceAddress(routeValue);
+       
+     //Passing the selectedRouteAndRate object to the method to retrieve the rate for the order
+     // String selectedRate = getRate();
+       
+       //Writing data to the orders table in the java_haulage_and_trucking database
+       OrdersDatabase ordersDB =new OrdersDatabase();
+     // ordersDB.writeToOrdersTable(invoiceNoValue, nameValue, companyAddress, addressValue, rate, address, dateValue);
     } 
-
+    
     // Generates a unique string for an invoice number
     // Creating a static attribute to hold the characters used to make up the invoice number
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -283,49 +371,20 @@ public class BookingForm extends JInternalFrame{
         date.getMinSelectableDate();
     } 
     
-    //Gets the location of the company location from which the order was made
-    public String getSourceAddress(String address)
+    //Allows a driver to be selected from the staff class
+    public JComboBox<String> driverForBooking()
     {
-    	 // Split the input string into words
-        String[] words = address.split("\\s+");
-
-        // Iterate over the words to find the route containing "Kingston" or "Montego"
-        for (int i = 0; i < words.length; i++) {
-            String currentWord = words[i];
-            // Check if the word contains "Kingston" or "Montego" (case-insensitive)
-            if (currentWord.equalsIgnoreCase("Kingston")) {
-                // Return the address for Kingston
-                return "26 Marcus Garvey Drive, Kingston 6";
-            } else if (currentWord.equalsIgnoreCase("Montego")) {
-                // Check if the next word is "Bay" after "Montego"
-                if (i + 1 < words.length && words[i + 1].equalsIgnoreCase("Bay")) {
-                    // Return the address for Montego Bay
-                    return "33 Fair View Avenue, Montego Bay";
-                }
-            }
-        }
-        
-     // If "Kingston" or "Montego" is not found, return null or any other default value
-        return null;
-    }
-    
-    //Gets the rate for the associated route
-    public String getRate(String address)
-    {
-    	 // Find the position of the first dollar sign ('$')
-        int dollarIndex = address.indexOf('$');
-        if (dollarIndex != -1) { // If dollar sign found
-            // Find the position of the first space after the dollar sign
-            int spaceIndex = address.indexOf(' ', dollarIndex);
-            if (spaceIndex != -1) { // If space found after the dollar sign
-                // Extract the substring between the dollar sign and the space
-                String moneyString = address.substring(dollarIndex + 1, spaceIndex).trim();
-                // Remove commas from the money string
-                moneyString = moneyString.replace(",", "");
-                return moneyString;
-            }
-        }
-        // If dollar sign or space not found, return null
-        return null;
+    	Staff driver = new Staff();
+		List<Staff> driverList = driver.driverFilter();
+				
+		driverComboBox = new JComboBox<String>();
+		driverComboBox.setBounds(30, 30, 200, 30);
+		
+		for (Staff s : driverList)
+		{
+			System.out.println(s + "\n");
+			driverComboBox.addItem(s.getFirstName() + " " + s.getLastName());
+		}
+		return driverComboBox;
     }
 }
