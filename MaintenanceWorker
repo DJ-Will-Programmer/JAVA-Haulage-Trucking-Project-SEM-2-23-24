@@ -64,7 +64,7 @@ public class MaintenanceWorker extends Contractor
 	@Override
 	public String toString()
 	{
-		return super.toString() + "\nSpecialization:\t\t" + specialization;
+		return super.toString() + "\nSpecialization:\t\t\t" + specialization;
 	}
 	
 	public void addSpecialization(MaintenanceWorker staff, String specialization)
