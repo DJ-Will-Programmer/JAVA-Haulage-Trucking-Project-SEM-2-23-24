@@ -283,4 +283,12 @@ public class Staff
 		return staffList;
 	}
 	
+	/*retrieve all staff members with Driver position from database and place in list*/
+	public List<Staff> driverFilter()
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		List<Staff> driverList = session.createQuery("FROM Staff WHERE position = 'Driver'", Staff.class).list();;
+		
+		return driverList;
+	}
 }
