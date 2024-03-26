@@ -1,0 +1,103 @@
+//Tianna Lue-Lim: 2109411
+
+package forms;
+
+import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import staff.Staff;
+
+public class StaffDataTable //JTable to display staff data from the database
+{
+	private JFrame dataFrame; //JFrame to hold table
+	private JTable staffDataTable; //table to show staff data
+	private DefaultTableModel model; //allows for addColumn and addRow operations to be used
+	
+	public StaffDataTable()
+	{
+
+		dataFrame = new JFrame("Employee Data");
+		
+		model = new DefaultTableModel();
+		
+		/*preventing the user from editing data shown in the table*/
+		staffDataTable = new JTable(model)
+		{
+
+			private static final long serialVersionUID = 1L;
+
+			public boolean editCellAt(int row, int column, java.util.EventObject e) 
+			{
+	            return false;
+	        }
+		};
+		
+		dataFrame.add(new JScrollPane(staffDataTable)); //add scroll pane to frame
+		dataFrame.setExtendedState(JFrame.MAXIMIZED_BOTH); //maximize frame vertically and horizontally to achieve full screen effect
+		dataFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		/*add columnss and headings to table*/
+		model.addColumn("ID");
+		model.addColumn("First Name");
+		model.addColumn("Last Name");
+		model.addColumn("DOB");
+		model.addColumn("Telephone");
+		model.addColumn("Email");
+		model.addColumn("Office");
+		model.addColumn("Position");
+		model.addColumn("Address 1");
+		model.addColumn("Address 2");
+		model.addColumn("Post Office");
+		model.addColumn("Parish");
+		model.addColumn("Status");
+
+		/*adjust width of columns*/
+		staffDataTable.getColumnModel().getColumn(0).setPreferredWidth(4); //first column: ID
+		staffDataTable.getColumnModel().getColumn(1).setPreferredWidth(10); //second column: First Name
+		staffDataTable.getColumnModel().getColumn(2).setPreferredWidth(10); //third column: Last Name
+		staffDataTable.getColumnModel().getColumn(3).setPreferredWidth(10); //DOB
+		staffDataTable.getColumnModel().getColumn(4).setPreferredWidth(12); //Telephone
+		staffDataTable.getColumnModel().getColumn(5).setPreferredWidth(100); //Email
+		staffDataTable.getColumnModel().getColumn(6).setPreferredWidth(10); //Office
+		staffDataTable.getColumnModel().getColumn(7).setPreferredWidth(10); //Position
+		//staffDataTable.getColumnModel().getColumn(10).setPreferredWidth(10); //PostOffice
+		staffDataTable.getColumnModel().getColumn(11).setPreferredWidth(10); //Parish
+		staffDataTable.getColumnModel().getColumn(12).setPreferredWidth(5); //13th column: Status
+		
+		Staff staff = new Staff(); //create new staff object
+		List<Staff> staffList = staff.readAllStaff(); //call method from Staff class to retrieve all staff data and place in a list 
+		
+		for(Staff emp : staffList) //for each
+		{
+			/*populating an array with the data retrieved from readAllStaff method*/
+			Object[] row = 
+			{
+				emp.getStaffId(),
+				emp.getFirstName(),
+				emp.getLastName(),
+				emp.getDateOfBirth(),
+				emp.getTelephone(),
+				emp.getEmail(),
+				emp.getOfficeLocation(),
+				emp.getPosition(),
+				emp.getAddress1(),
+				emp.getAddress2(),
+				emp.getPostOffice(),
+				emp.getParish(),
+				emp.getStatus()
+			};
+			model.addRow(row); //add each staff row/record to the table
+		}
+				
+		dataFrame.setVisible(true); //display JFrame that holds the table
+	}
+		
+	public static void main(String[] args)
+	{
+		new StaffDataTable();
+	}
+}
