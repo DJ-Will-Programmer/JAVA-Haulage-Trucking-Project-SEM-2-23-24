@@ -1,0 +1,184 @@
+//Aniecia Campbell 2108881
+package apgrouproject;
+
+import java.util.Random;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name= "customer")
+public class Customer {
+	@Id 
+	@Column(name = "customerId")
+	private String customerId;
+	
+	@Column(name = "company")
+    private String company;
+	
+	@Column(name = "contactPerson")
+    private String contactPerson;
+	
+	@Column(name = "address1")
+    private String address1;
+	
+	@Column(name = "address2")
+    private String address2;
+	
+	@Column(name = "postOffice")
+    private String postOffice;
+	
+	@Column(name = "parish")
+    private String parish;
+	
+	@Column(name = "telephone")
+    private String telephone;
+	
+	@Column(name = "email")
+    private String email;
+	
+	@Column(name = "status")
+    private String status;
+
+	@Column(name = "balance")
+    private double balance;
+   	
+	//Default Constructor
+    public Customer(){
+    	this.customerId = " ";
+		this.company = " ";
+		this.contactPerson = " ";
+		this.address1 = " ";
+		this.address2 = " ";
+		this.postOffice = " ";
+		this.parish = " ";
+		this.telephone = " ";
+		this.email = " ";
+		this.status = " ";
+		this.balance = 0.00;
+    }
+    
+    //Primary Constructor
+	public Customer(String customerId, String company, String contactPerson, String address1, String address2,
+			String postOffice, String parish, String telephone, String email, String status, double balance) {
+		this.customerId = customerId;
+		this.company = company;
+		this.contactPerson = contactPerson;
+		this.address1 = address1;
+		this.address2 = address2;
+		this.postOffice = postOffice;
+		this.parish = parish;
+		this.telephone = telephone;
+		this.email = email;
+		this.status = status;
+		this.balance = balance;
+	}
+	
+	//Copy constructor
+	public Customer(Customer customer) {
+        this.customerId = customer.customerId;
+        this.company = customer.company;
+        this.contactPerson = customer.contactPerson;
+        this.address1 = customer.address1;
+        this.address2 = customer.address2;
+        this.postOffice = customer.postOffice;
+        this.parish = customer.parish;
+        this.telephone = customer.telephone;
+        this.email = customer.email;
+        this.status = customer.status;
+        this.balance = customer.balance;
+    }
+	public String getCustomerId() {
+		return customerId;
+	}
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+	public String getCompany() {
+		return company;
+	}
+	public void setCompany(String company) {
+		this.company = company;
+	}
+	public String getContactPerson() {
+		return contactPerson;
+	}
+	public void setContactPerson(String contactPerson) {
+		this.contactPerson = contactPerson;
+	}
+	public String getAddress1() {
+		return address1;
+	}
+	public void setAddress1(String address1) {
+		this.address1 = address1;
+	}
+	public String getAddress2() {
+		return address2;
+	}
+	public void setAddress2(String address2) {
+		this.address2 = address2;
+	}
+	public String getPostOffice() {
+		return postOffice;
+	}
+	public void setPostOffice(String postOffice) {
+		this.postOffice = postOffice;
+	}
+	public String getParish() {
+		return parish;
+	}
+	public void setParish(String parish) {
+		this.parish = parish;
+	}
+	public String getTelephone() {
+		return telephone;
+	}
+	public void setTelephone(String telephone) {
+		this.telephone = telephone;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public double getBalance() {
+		return balance;
+	}
+	public void setBalance(double balance) {
+		this.balance = balance;
+	}
+	
+	@Override
+	public String toString() {
+		return "Customer ID:\n" + customerId + "Company:" + company + "Contact Person:" + contactPerson + "Address 1:"
+				+ address1 + "Address 2:" + address2 + "Post Office:" + postOffice + "Parish:" + parish + "Telephone:"
+				+ telephone + "Email:" + email + "Status=" + status + "Balance:" + balance
+				+ "\n";
+	}
+	
+	 // Generates a unique string for a customer ID
+    // Creating a static attribute to hold the characters used to make up the invoice number
+    private static final String CHARACTERS = "123456789";
+    // Creating a static attribute to declare a constant length of 7 for the invoice
+    private static final int LENGTH = 7;
+
+    public static String getCustomersId() {
+        // Calling random method
+        Random random = new Random();
+        // Creating an object of the StringBuilder class to hold the string
+        StringBuilder invoiceBuilder = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            invoiceBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return invoiceBuilder.toString();
+    }
+}
