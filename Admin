@@ -16,7 +16,7 @@ import dbConnection.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
-@Table(name="adminpasswords") //table name in db
+@Table(name="staff") //table name in db
 
 public class Admin extends Staff //Admin is a child class of Staff
 {	
