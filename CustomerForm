@@ -1,0 +1,218 @@
+//Aniecia Campbell 2108881
+package apgrouproject;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+
+import dbConnection.SessionFactoryBuilder;
+import apgrouproject.Customer;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+public class CustomerForm extends JInternalFrame implements ActionListener{
+	private JPanel pane;
+    private JTextField txtCompany, txtContactPerson, txtAddress1, txtAddress2, txtPostOffice, txtParish, txtTelephone, txtEmail;
+    private JButton btnSubmit;
+	private static final long serialVersionUID = 1L;
+	public static final Logger logger = LogManager.getLogger(CustomerForm.class);
+	public CustomerForm()
+	{
+		super("Java Haulage and Trucking Customer Form", true, true, true, true);
+        //Adding the newWindowsProperties method so that the rate sheet window can display
+        newWindowProperties();
+        
+        setTitle("JHT Customer Registration");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 470, 600);
+        pane = new JPanel();
+        pane.setBackground(new Color(240, 240, 240)); 
+        pane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(pane);
+        pane.setLayout(null);
+
+        JLabel lblCustomerRegistration = new JLabel("Customer Registration");
+        lblCustomerRegistration.setFont(new Font("Verdana", Font.BOLD, 18));
+        lblCustomerRegistration.setBounds(120, 10, 250, 30);
+        pane.add(lblCustomerRegistration);
+
+        JLabel lblCompany = new JLabel("Company:");
+        lblCompany.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblCompany.setBounds(27, 50, 100, 30);
+        pane.add(lblCompany);
+
+        txtCompany = new JTextField();
+        txtCompany.setBounds(130, 50, 300, 30);
+        pane.add(txtCompany);
+
+        JLabel lblContactPerson = new JLabel("Contact Person:");
+        lblContactPerson.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblContactPerson.setBounds(27, 100, 150, 30);
+        pane.add(lblContactPerson);
+
+        txtContactPerson = new JTextField();
+        txtContactPerson.setBounds(180, 100, 250, 30);
+        pane.add(txtContactPerson);
+
+        JLabel lblAddress1 = new JLabel("Address 1:");
+        lblAddress1.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblAddress1.setBounds(27, 150, 150, 30);
+        pane.add(lblAddress1);
+
+        txtAddress1 = new JTextField();
+        txtAddress1.setBounds(180, 150, 250, 30);
+        pane.add(txtAddress1);
+
+        JLabel lblAddress2 = new JLabel("Address 2:");
+        lblAddress2.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblAddress2.setBounds(27, 200, 150, 30);
+        pane.add(lblAddress2);
+
+        txtAddress2 = new JTextField();
+        txtAddress2.setBounds(180, 200, 250, 30);
+        pane.add(txtAddress2);
+
+        JLabel lblPostOffice = new JLabel("Post Office:");
+        lblPostOffice.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblPostOffice.setBounds(27, 250, 150, 30);
+        pane.add(lblPostOffice);
+
+        txtPostOffice = new JTextField();
+        txtPostOffice.setBounds(180, 250, 250, 30);
+        pane.add(txtPostOffice);
+
+        JLabel lblParish = new JLabel("Parish:");
+        lblParish.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblParish.setBounds(27, 300, 150, 30);
+        pane.add(lblParish);
+
+        txtParish = new JTextField();
+        txtParish.setBounds(180, 300, 250, 30);
+        pane.add(txtParish);
+
+        JLabel lblTelephone = new JLabel("Telephone:");
+        lblTelephone.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblTelephone.setBounds(27, 350, 150, 30);
+        pane.add(lblTelephone);
+
+        txtTelephone = new JTextField();
+        txtTelephone.setBounds(180, 350, 250, 30);
+        pane.add(txtTelephone);
+
+        JLabel lblEmail = new JLabel("Email:");
+        lblEmail.setFont(new Font("Verdana", Font.PLAIN, 16));
+        lblEmail.setBounds(27, 400, 150, 30);
+        pane.add(lblEmail);
+
+        txtEmail = new JTextField();
+        txtEmail.setBounds(180, 400, 250, 30);
+        pane.add(txtEmail);
+
+        btnSubmit = new JButton("Submit");
+        btnSubmit.setFont(new Font("Verdana", Font.PLAIN, 14));
+        btnSubmit.setBackground(Color.BLACK);
+        btnSubmit.setForeground(Color.WHITE);
+        btnSubmit.setBounds(180, 460, 100, 30); 
+        btnSubmit.setToolTipText("Submit");
+        btnSubmit.addActionListener(this);
+        pane.add(btnSubmit);
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnSubmit) {
+        	String customerId = Customer.getCustomersId();
+            String company = txtCompany.getText();
+            String contactPerson = txtContactPerson.getText();
+            String address2 = txtAddress2.getText();
+            String address1 = txtAddress1.getText();
+            String postOffice = txtPostOffice.getText();
+            String parish = txtParish.getText();
+            String telephone = txtTelephone.getText();
+            String email = txtEmail.getText();
+           
+           if (customerId.isEmpty() || company.isEmpty() || contactPerson.isEmpty() || address1.isEmpty() || address2.isEmpty()|| postOffice.isEmpty() || parish.isEmpty() || telephone.isEmpty() || email.isEmpty())
+           {
+               JOptionPane.showMessageDialog(null, "Cannot create account because one or more required fields are empty:\n"
+                       + "Customer ID, Company, Contact Person, Address 1, Address 2, Post Office, Parish, Telephone, or Email", "Error: Blank Fields", JOptionPane.INFORMATION_MESSAGE);
+           } else {
+           	// Create new customer object with values entered
+           	Customer customer = new Customer(customerId, company, contactPerson, address1, address2, postOffice, parish, telephone, email, "", 0.00, "");
+
+           	createCustomer(customer); // Function call to save customer details to the database
+
+           	// Show success message
+           	JOptionPane.showMessageDialog(
+           	    pane, "Customer account created: " + customerId, 
+           	    "Success", 
+           	    JOptionPane.INFORMATION_MESSAGE);
+           	
+           	// Clear input fields
+               txtCustomerId.setText("");
+               txtCompany.setText("");
+               txtContactPerson.setText("");
+               txtAddress1.setText("");
+               txtAddress2.setText("");
+               txtPostOffice.setText("");
+               txtParish.setText("");
+               txtTelephone.setText("");
+               txtEmail.setText("");
+
+               // Dispose the frame
+               dispose();
+           }
+           
+           }
+        }
+      
+        public static void createCustomer(Customer customer) {
+    		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = null;
+
+            try 
+            {
+                transaction = session.beginTransaction();
+                session.save(customer);
+                transaction.commit();
+
+                System.out.println(customer.toString());
+
+            } 
+            catch (RuntimeException re) 
+            {
+                if (transaction != null) 
+                {
+                    transaction.rollback();
+                }
+                re.printStackTrace();
+            } 
+            finally 
+            {
+                session.close();
+            }
+        }
+  
+	////Method sets the properties of the customer window
+	public void newWindowProperties()
+	{
+		this.setSize(600, 450);
+		this.setVisible(true);
+		this.setResizable(true);
+	}
+}
