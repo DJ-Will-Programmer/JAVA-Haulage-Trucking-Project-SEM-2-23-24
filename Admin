@@ -1,0 +1,106 @@
+//Tianna Lue-Lim: 2109411
+
+package apgrouproject;
+
+import java.time.LocalDate;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.swing.JOptionPane;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import dbConnection.SessionFactoryBuilder;
+
+/*hibernate mapping*/
+@Entity
+@Table(name="adminpasswords") //table name in db
+
+public class Admin extends Staff //Admin is a child class of Staff
+{	
+	@Column(name="adminPassword")
+	private String password; //attribute used along with staffId to allow Admins to log in to the system
+	
+	public Admin() //default constructor
+	{
+		super(); //inherit default constructor from parent class (Staff)
+		password = "";
+	}
+	
+	//primary constructor
+	public Admin (String staffId, String firstName, String lastName, LocalDate dateOfBirth, 
+			String telephone, String email, String officeLocation, String position, 
+			String address1, String address2, String postOffice, String parish, String status, String password)
+	{
+		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
+				officeLocation, position, address1, address2, postOffice, parish, status);
+		this.password = password;
+	}
+	
+	public Admin(Admin admin) //copy constructor
+	{
+		super(admin.staffId, admin.firstName, admin.lastName, admin.dateOfBirth, admin.telephone, admin.email,
+				admin.officeLocation, admin.position, admin.address1, admin.address2, admin.postOffice, admin.parish, admin.status);
+		this.password = admin.password;
+	}	
+	
+	public String getPassword() //accessor
+	{
+		return password;
+	}
+
+	public void setPassword(String password) //mutator
+	{
+		this.password = password;
+	}
+
+	@Override
+	public String toString()
+	{
+		return super.toString(); //password would not be output
+	}
+	
+	/*add admin password to admin types in the database*/
+	public void createAdminPassword(Admin staff, String password)
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+		
+		try
+		{
+			transaction = session.beginTransaction();
+			staff.setPassword(password);
+						
+			session.update(staff); //update staff with new password
+			transaction.commit();
+			
+			System.out.println(staff.toString());
+			
+			JOptionPane.showMessageDialog(null, "Admin password has been set.", "Password set.", JOptionPane.INFORMATION_MESSAGE);
+		}
+		catch (RuntimeException re)
+		{
+			if(transaction != null)
+			{
+				transaction.rollback();
+			}
+		}
+		catch (Exception ex)
+		{
+			if(transaction != null)
+			{
+				transaction.rollback();
+			}
+			System.err.println("Error setting admin password: " + ex.getMessage());
+		}
+		finally
+		{
+			session.close();
+		}
+	}	
+	
+		
+	//add method for preparing salary
+}
