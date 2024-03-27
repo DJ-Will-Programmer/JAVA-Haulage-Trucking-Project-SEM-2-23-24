@@ -1,0 +1,297 @@
+//Tianna Lue-Lim: 2109411
+
+package forms;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.util.stream.IntStream;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+
+import staff.Staff;
+
+public class UpdateStaffForm 
+{
+	/*class attributes*/
+	private JFrame searchFrame;
+	private JButton searchButton;
+	
+	private JLabel staffIdLabel;
+	private JTextField staffIdTxt;
+	
+	private JButton submitChanges;
+	private JLabel firstNameLabel;
+	private JTextField firstNameTxt;
+	private JLabel lastNameLabel;
+	private JTextField lastNameTxt;
+	private JLabel dateOfBirthLabel;
+	private JLabel dateLabel;
+	private JLabel monthLabel;
+	private JLabel yearLabel;
+	private final Integer[] dates = IntStream.rangeClosed(1, 31).boxed().toArray((Integer[]::new)); //array of dates	
+	private final Integer[] months = IntStream.rangeClosed(1, 12).boxed().toArray((Integer[]::new)); //array of months
+	private final Integer[] years = IntStream.rangeClosed(1954, LocalDate.now().getYear()).boxed().toArray((Integer[]::new)); //array of years; set max value to current year
+	private JComboBox<Integer> dateComboBox;
+	private JComboBox<Integer> monthComboBox;
+	private JComboBox<Integer> yearComboBox;
+	private JLabel telephoneLabel;
+	private JTextField telephoneTxt;
+	private JLabel emailLabel;
+	private JTextField emailTxt;
+	private JLabel officeLocationLabel;
+	private final String officeLocations[] = {"Kingston", "Montego Bay"};
+	private JComboBox<String> officeLocationComboBox;
+	private JLabel positionLabel;
+	private JTextField positionTxt;
+	private JLabel address1Label;
+	private JTextField address1Txt;
+	private JLabel address2Label;
+	private JTextField address2Txt;
+	private JLabel postOfficeLabel;
+	private JTextField postOfficeTxt;
+	private JLabel parishLabel;
+	private final String parishes[] = {"Kingston", "St. Andrew", "Portland", "St. Thomas", "St. Catherine", "St. Mary", "St. Ann", 
+									"Manchester", "Clarendon", "Hanover", "Westmoreland", "St. James", "Trelawny", "St. Elizabeth"};
+	private JComboBox<String> parishComboBox;
+	private JLabel statusLabel;
+	private final String statusOptions[] = {"Part-Time", "Full-Time"};
+	private JComboBox<String> statusComboBox;
+	
+	public UpdateStaffForm()
+	{
+		//frame holding textbox to be used to search database for employee using ID
+		searchFrame = new JFrame("Enter Employee ID");
+		
+		searchFrame.setSize(450, 150);
+		searchFrame.setLayout(null);
+		searchFrame.setVisible(true);
+		searchFrame.setResizable(true);
+		searchFrame.setLocationRelativeTo(null);
+		searchFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		searchButton = new JButton("Search"); //initialize button object
+		searchButton.setBounds(290, 30, 100, 29); //define position and size of button
+		searchFrame.add(searchButton); //add the button to the frame
+		
+		submitChanges = new JButton("Submit Changes");
+		submitChanges.setBounds(200, 660, 150, 30);
+		
+		staffIdLabel = new JLabel("Staff ID: ");
+		staffIdTxt = new JTextField(200);
+		
+		staffIdLabel.setBounds(30, 30, 100, 30); 
+		staffIdTxt.setBounds(90, 30, 200, 30);
+		
+		searchFrame.add(staffIdLabel);
+		searchFrame.add(staffIdTxt);
+		searchFrame.add(searchButton);
+			
+		searchButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{				
+				String searchId = staffIdTxt.getText();
+				Staff staff = new Staff ();
+				staff = staff.locateEmployeeToUpdate(searchId); //retrieve staff member for corresponding ID number from the database
+				
+				if(staff != null)
+				{	
+					searchFrame.dispose(); //close search window after button is clicked, if the ID number entered exists in the database
+					
+					System.out.println(staff.toString()); //display staff data on console
+					
+					JFrame updateForm = new JFrame("Update Employee Data");
+					updateForm.setSize(550, 800); //width, height
+					updateForm.setLayout(null);
+					updateForm.setVisible(true);
+					//updateForm.setLocationRelativeTo(null);
+					updateForm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					
+					/*put values retrieved from database into variables*/
+					String firstName = staff.getFirstName();
+					String lastName = staff.getLastName();
+					int date = staff.getDateOfBirth().getDayOfMonth();
+					int month = staff.getDateOfBirth().getMonthValue();
+					int year = staff.getDateOfBirth().getYear();
+					String telephone = staff.getTelephone();
+					String email = staff.getEmail();
+					String officeLocation = staff.getOfficeLocation();
+					String position = staff.getPosition();
+					String address1 = staff.getAddress1();
+					String address2 = staff.getAddress2();
+					String postOffice = staff.getPostOffice();
+					String parish = staff.getParish();
+					String status = staff.getStatus();
+					
+					/*initialize form elements, set position and size*/
+					firstNameLabel = new JLabel("First Name: ");
+					firstNameTxt = new JTextField(firstName, 200); //set value shown in text field as the value retrieved from the database
+					firstNameLabel.setBounds(30, 30, 150, 30); 
+					firstNameTxt.setBounds(160, 30, 320, 30);
+					
+					lastNameLabel = new JLabel("Last Name: ");
+					lastNameTxt = new JTextField(lastName, 200);
+					lastNameLabel.setBounds(30, 80, 150, 30);
+					lastNameTxt.setBounds(160, 80, 320, 30);
+					
+					dateOfBirthLabel = new JLabel("Date of Birth: ");
+					dateOfBirthLabel.setBounds(30, 130, 200, 30);
+					dateLabel = new JLabel("Date");
+					dateLabel.setBounds(160, 130, 150, 30);
+					dateComboBox = new JComboBox<Integer>(dates);
+					dateComboBox.setBounds(160, 155, 95, 30);
+					dateComboBox.setSelectedItem(date);
+					monthLabel = new JLabel("Month");
+					monthLabel.setBounds(270, 130, 150, 30);
+					monthComboBox = new JComboBox<Integer>(months);
+					monthComboBox.setSelectedItem(month);
+					monthComboBox.setBounds(270, 155, 95, 30);
+					yearLabel = new JLabel("Year");
+					yearLabel.setBounds(380, 130, 150, 30);
+					yearComboBox = new JComboBox<Integer>(years);
+					yearComboBox.setSelectedItem(year);
+					yearComboBox.setBounds(380, 155, 95, 30);
+					
+					telephoneLabel = new JLabel("Telephone: ");
+					telephoneTxt = new JTextField(telephone, 200);
+					telephoneLabel.setBounds(30, 210, 150, 30);
+					telephoneTxt.setBounds(160, 210, 320, 30);
+					emailLabel = new JLabel("Email Address: ");
+					emailTxt = new JTextField(email, 200);
+					emailLabel.setBounds(30, 260, 150, 30);
+					emailTxt.setBounds(160, 260, 320, 30);
+					
+					officeLocationLabel = new JLabel("Office Location: ");
+					officeLocationLabel.setBounds(30, 310, 150, 30);
+					officeLocationComboBox = new JComboBox<String>(officeLocations);
+					officeLocationComboBox.setBounds(160, 310, 320, 30);
+					officeLocationComboBox.setSelectedItem(officeLocation);				
+					
+					address1Label = new JLabel("Address Line 1: ");
+					address1Txt = new JTextField(address1, 200);
+					address1Label.setBounds(30, 410, 150, 30);
+					address1Txt.setBounds(160, 410, 320, 30);
+					address2Label = new JLabel("Address Line 2: ");
+					address2Txt = new JTextField(address2, 200);
+					address2Label.setBounds(30, 460, 150, 30);
+					address2Txt.setBounds(160, 460, 320, 30);
+					postOfficeLabel = new JLabel("Post Office: ");
+					postOfficeLabel.setBounds(30, 510, 150, 30);
+					postOfficeTxt = new JTextField(postOffice, 200);
+					postOfficeTxt.setBounds(160, 510, 320, 30);
+					parishLabel = new JLabel("Parish: ");
+					parishLabel.setBounds(30, 560, 150, 30);
+					parishComboBox = new JComboBox<String>(parishes);
+					parishComboBox.setBounds(160, 560, 320, 30);
+					parishComboBox.setSelectedItem(parish);
+					
+					statusLabel = new JLabel("Employee Status: ");
+					statusLabel.setBounds(30, 610, 150, 30);
+					statusComboBox = new JComboBox<String>(statusOptions);
+					statusComboBox.setBounds(160, 610, 320, 30);
+					statusComboBox.setSelectedItem(status);
+					
+					positionLabel = new JLabel("Position: ");
+					positionLabel.setBounds(30, 360, 150, 30);
+					positionTxt = new JTextField(position, 200);
+					positionTxt.setBounds(160, 360, 320, 30);
+					positionTxt.setEditable(false);
+												
+					/*add elements to update form*/
+					updateForm.add(firstNameLabel);
+					updateForm.add(firstNameTxt);
+					updateForm.add(lastNameLabel);
+					updateForm.add(lastNameTxt);
+					updateForm.add(dateOfBirthLabel);
+					updateForm.add(dateLabel);
+					updateForm.add(monthLabel);
+					updateForm.add(yearLabel);
+					updateForm.add(dateComboBox);
+					updateForm.add(monthComboBox);
+					updateForm.add(yearComboBox);
+					updateForm.add(telephoneLabel);
+					updateForm.add(telephoneTxt);
+					updateForm.add(emailLabel);
+					updateForm.add(emailTxt);
+					updateForm.add(officeLocationLabel);
+					updateForm.add(officeLocationComboBox);
+					updateForm.add(positionLabel);
+					updateForm.add(positionTxt);
+					updateForm.add(address1Label);
+					updateForm.add(address1Txt);
+					updateForm.add(address2Label);
+					updateForm.add(address2Txt);
+					updateForm.add(postOfficeLabel);
+					updateForm.add(postOfficeTxt);
+					updateForm.add(parishLabel);
+					updateForm.add(parishComboBox);
+					updateForm.add(statusLabel);
+					updateForm.add(statusComboBox);
+					updateForm.add(submitChanges);
+					
+					submitChanges.addActionListener(new ActionListener()
+					{
+						public void actionPerformed(ActionEvent e)
+						{
+							/*store form data*/
+							String updatedFirstName = firstNameTxt.getText();
+							String updatedLastName = lastNameTxt.getText();
+							String updatedDateString = dateComboBox.getSelectedItem().toString();
+							String updatedMonthString = monthComboBox.getSelectedItem().toString();
+							String updatedYearString = yearComboBox.getSelectedItem().toString();
+							String updatedTelephone = telephoneTxt.getText();
+							String updatedEmail = emailTxt.getText();
+							String updatedOfficeLocation = officeLocationComboBox.getSelectedItem().toString();
+							String updatedPosition = positionTxt.getText(); //positionComboBox.getSelectedItem().toString();
+							String updatedAddress1 = address1Txt.getText();
+							String updatedAddress2 = address2Txt.getText();
+							String updatedPostOffice = postOfficeTxt.getText();
+							String updatedParish = parishComboBox.getSelectedItem().toString();
+							String updatedStatus = statusComboBox.getSelectedItem().toString();
+							
+							/*convert date to int, then LocalDate*/
+							int date = Integer.parseInt(updatedDateString);
+							int month = Integer.parseInt(updatedMonthString);
+							int year = Integer.parseInt(updatedYearString);
+							LocalDate updatedDateOfBirth = LocalDate.of(year, month, date);			
+							
+							/*if else function to prevent the entry of null values for required fields in the database table*/
+							if(updatedFirstName.isEmpty() || updatedLastName.isEmpty() || updatedTelephone.isEmpty() || updatedEmail.isEmpty() || updatedAddress1.isEmpty() || updatedPostOffice.isEmpty())
+							{
+								JOptionPane.showMessageDialog(updateForm, "Cannot update staff record because one or more of the following fields is empty:"
+										+ "\nFirst Name, Last Name, Telephone, Email Address, Address Line 1, or Post Office", 
+										"Error: Blank Fields", JOptionPane.INFORMATION_MESSAGE);
+							}
+							else
+							{
+								//create new staff object with updated values. ID number remains the same.
+								Staff updatedStaff = new Staff(searchId, updatedFirstName, updatedLastName, updatedDateOfBirth, updatedTelephone, updatedEmail, 
+										updatedOfficeLocation, updatedPosition, updatedAddress1, updatedAddress2, updatedPostOffice, updatedParish, updatedStatus);
+								updatedStaff.updateStaff(updatedStaff);
+									
+								System.out.println("New Data\n" + updatedStaff.toString()); //display new staff data on console
+							}
+						}
+					});
+				}
+				else
+				{
+					System.err.println("Employee not found.");
+				}
+			}
+		});
+		
+	}
+	
+	/*main method*/
+	public static void main(String[] args) 
+	{
+		new UpdateStaffForm();
+	}
+}
