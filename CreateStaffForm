@@ -96,7 +96,7 @@ public class CreateStaffForm extends JInternalFrame {
 	private JLabel endMonthLabel;
 	private JLabel startYearLabel;
 	private JLabel endYearLabel;
-	private final Integer[] contractYears = IntStream.rangeClosed(2024, LocalDate.now().getYear()).boxed()
+	private final Integer[] contractYears = IntStream.rangeClosed(LocalDate.now().getYear(), LocalDate.now().getYear() + 1).boxed()
 			.toArray((Integer[]::new)); // array of years; set max value to current year
 	private JComboBox<Integer> startDayComboBox;
 	private JComboBox<Integer> endDayComboBox;
@@ -105,10 +105,16 @@ public class CreateStaffForm extends JInternalFrame {
 	private JComboBox<Integer> startYearComboBox;
 	private JComboBox<Integer> endYearComboBox;
 	private JButton contractButton;
+	
+	/*for setting specialization of maintenance workers*/
+	private JLabel specializationLabel;
+	private final String specializationOptions[] = {"Electrical", "Janitor", "Technician", "Mechanic"}; //store possible specialization types in an array
+	private JComboBox<String> specializationComboBox;
+	private JButton specializationButton;
 
 	public CreateStaffForm() // default constructor
 	{
-		super("Java Haulage and Trucking Staff Form", true, true, true, true);
+		super("Java Haulage and Trucking Staff Creation Form", true, true, true, true);
 		// Adding the newWindowsProperties method so that the rate sheet window can
 		// display
 		newWindowProperties();
@@ -233,6 +239,7 @@ public class CreateStaffForm extends JInternalFrame {
 		/* add an action listener to the button to write records to the database */
 		submitButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				
 				/* store data entered in form into variables */
 				String firstName = firstNameTxt.getText();
 				String lastName = lastNameTxt.getText();
@@ -270,9 +277,9 @@ public class CreateStaffForm extends JInternalFrame {
 					Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, officeLocation,
 							position, address1, address2, postOffice, parish, status);
 					String staffId = staff.generateStaffId(); // generate staff ID using random numbers
-					staff.setStaffId(staffId);
+					staff.setStaffId(staffId); //set the Staff ID as the random generated number
 
-					createStaffMember(staff); // function call
+					staff.createStaffMember(staff); // call to function in Staff class that writes staff objects to database
 
 					JOptionPane.showMessageDialog(frame, "Employee record created: " + firstName + " " + lastName,
 							"Success", JOptionPane.INFORMATION_MESSAGE);
@@ -304,16 +311,15 @@ public class CreateStaffForm extends JInternalFrame {
 							public void actionPerformed(ActionEvent e) {
 								// if the password field is not empty
 								if (passwordTxt.getText().isEmpty() == false) {
-									passwordFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // close button now
-																									// terminates
-																									// program
+									
 									@SuppressWarnings("deprecation")
 									String password = passwordTxt.getText();
 									Admin admin = new Admin(staffId, firstName, lastName, dateOfBirth, telephone, email,
 											officeLocation, position, address1, address2, postOffice, parish, status,
 											password);
 
-									createAdminPassword(admin, password);
+									admin.createAdminPassword(admin, password);
+									passwordFrame.dispose(); //close frame after button is clicked, if the password entered is not empty
 								} else {
 									// informs the user that the password field cannot be empty
 									JOptionPane.showMessageDialog(passwordFrame, "Password field cannot be empty.",
@@ -413,25 +419,65 @@ public class CreateStaffForm extends JInternalFrame {
 											"Contract start date cannot be the same as end date.", "Error",
 											JOptionPane.INFORMATION_MESSAGE);
 								} else {
-									contractFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 									LocalDate startDate = LocalDate.of(startYear, startMonth, startDay);
 									LocalDate endDate = LocalDate.of(endYear, endMonth, endDay);
 									Contractor contractor = new Contractor(staffId, firstName, lastName, dateOfBirth,
 											telephone, email, officeLocation, position, address1, address2, postOffice,
 											parish, status, startDate, endDate);
 
-									createContractDuration(contractor, startDate, endDate);
+									contractor.createContractDuration(contractor, startDate, endDate);
+									contractFrame.dispose(); //close frame after button is clicked, if the start and end dates are valid
+									
+									/*selection of specialization for maintenance workers*/
+									if(position == "Maintenance")
+									{
+										JFrame specializationFrame = new JFrame("Set Maintenance Specialization");
+										specializationFrame.setSize(400, 200);
+										specializationFrame.setLayout(null);
+										specializationFrame.setVisible(true);
+										specializationFrame.setResizable(true);
+										specializationFrame.setLocationRelativeTo(null);
+										specializationFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+										
+										specializationButton = new JButton("OK");
+										specializationButton.setBounds(100, 90, 230, 30);
+										specializationFrame.add(specializationButton);
+										
+										/*initialize and set bounds on components*/
+										specializationLabel = new JLabel("Select Specialization: ");
+										specializationLabel.setBounds(30, 50, 150, 30);
+										
+										specializationComboBox = new JComboBox<String>(specializationOptions);
+										specializationComboBox.setBounds(160, 50, 150, 30);
+										
+										specializationFrame.add(specializationLabel);
+										specializationFrame.add(specializationComboBox);
+										
+										specializationButton.addActionListener(new ActionListener()
+										{
+											public void actionPerformed(ActionEvent e)
+											{
+												String specialization = specializationComboBox.getSelectedItem().toString();
+												
+												System.out.println(specialization);
+												
+												MaintenanceWorker maintenance = new MaintenanceWorker(staffId, firstName, lastName, dateOfBirth, telephone, email, 
+														officeLocation, position, address1, address2, postOffice, parish, status, startDate, endDate, specialization);
+												
+												maintenance.addSpecialization(maintenance, specialization); //call function from MaintenanceWorker class
+												specializationFrame.dispose();
+											}
+										});
+									}
 								}
 							}
-						});
-					}
-
-					// add specialization selection for Maintenance
+						}); // end of action listener for contractButton	
+					} // end of else if for setting special atrributes
 
 				} // end validation if-else
 
-			} // end actionPerformed
-		}); // end of action listener
+			} // end actionPerformed for submit button
+		}); // end of action listener for submit button
 
 		/* Add action listener to the button to clear form data */
 		clearButton.addActionListener(new ActionListener() {
@@ -455,90 +501,6 @@ public class CreateStaffForm extends JInternalFrame {
 			}
 		});
 	} // end of default constructor
-
-	/* create object of the staff class using the data obtained from the form */
-	public static void createStaffMember(Staff dataFromForm) {
-		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-		Transaction transaction = null;
-
-		try {
-			transaction = session.beginTransaction();
-			Staff staff = new Staff(dataFromForm);
-
-			session.save(staff);
-			transaction.commit();
-
-			System.out.println(staff.toString());
-
-		} catch (RuntimeException re) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-		} finally {
-			session.close();
-		}
-	}
-
-	/* add admin password to admin types in the database */
-	public static void createAdminPassword(Admin staff, String password) {
-		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-		Transaction transaction = null;
-
-		try {
-			transaction = session.beginTransaction();
-			staff.setPassword(password);
-
-			session.update(staff); // update staff with new password
-			transaction.commit();
-
-			System.out.println(staff.toString());
-
-			JOptionPane.showMessageDialog(null, "Admin password has been set.", "Password set.",
-					JOptionPane.INFORMATION_MESSAGE);
-		} catch (RuntimeException re) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-		} catch (Exception ex) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-			System.err.println("Error setting admin password: " + ex.getMessage());
-		} finally {
-			session.close();
-		}
-	}
-
-	/* add contract start and end dates to contractor types in the database */
-	public static void createContractDuration(Contractor staff, LocalDate start, LocalDate end) {
-		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-		Transaction transaction = null;
-
-		try {
-			transaction = session.beginTransaction();
-			staff.setContractStartDate(start);
-			staff.setContractEndDate(end);
-
-			session.update(staff); // update staff with new data
-			transaction.commit();
-
-			System.out.println(staff.toString());
-
-			JOptionPane.showMessageDialog(null, "Contract start and end dates have been set.", "Success.",
-					JOptionPane.INFORMATION_MESSAGE);
-		} catch (RuntimeException re) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-		} catch (Exception ex) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-			System.err.println("Error setting length of contract: " + ex.getMessage());
-		} finally {
-			session.close();
-		}
-	}
 
 	// Method sets the properties of the Staff window
 	public void newWindowProperties() {
