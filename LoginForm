@@ -1,9 +1,10 @@
 //Tianna Lue-Lim: 2109411
 
-package forms;
+package apgrouproject;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -12,10 +13,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import org.hibernate.Query;
 import org.hibernate.Session;
 
-import factories.SessionFactoryBuilder;
-import staff.Staff;
+import dbConnection.SessionFactoryBuilder;
 
 /*allow admin members to log in using their username (staffId) and password*/
 public class LoginForm 
@@ -81,7 +82,9 @@ public class LoginForm
 				else
 				{
 					Staff admin = retrieveEmployee(id); //check if a staff record exists that corresponds with the ID entered
+					//Admin admin = retrieveEmployee(id);
 					boolean passwordCheck = checkPassword(password, id); //check if the current password-ID combo exists for a record in the table
+					System.out.println(passwordCheck);
 					
 					if(admin == null)
 					{
@@ -104,12 +107,11 @@ public class LoginForm
 		
 	}
 
-	/*checl to see of ID number entered exists in the table*/
+	/*check to see of ID number entered exists in the table*/
 	public static Staff retrieveEmployee(String id) 
 	{
 		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
 		Staff admin = new Staff();
-
 		try 
 		{
 			admin = session.get(Staff.class, id);
@@ -135,21 +137,26 @@ public class LoginForm
 		return admin;
 	}
 	
-	/*check to see if password enters is correct for the already validated id number*/
+	/*check to see if password entered is correct for the already validated id number*/
 	public static boolean checkPassword(String pw, String id)
 	{
 		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-		Staff admin = new Staff();
+		Staff staff = new Staff();
 		
 		try 
-		{
-			admin = session.get(Staff.class, id);
-
-			if (admin.getStaffId().equals(id)) 
+		{	
+			/*where and query searches for object in the table with the staffId and password combo entered by the user*/
+			staff = (Staff) session.createQuery("FROM Staff s WHERE s.password = :pw AND s.staffId = :id")
+					.setParameter("pw", pw)
+					.setParameter("id", id)
+	                .uniqueResult();
+						
+			if (staff!=null)
 			{
 				System.out.println("Log-in successful.");
 				return true;
 			}
+
 		}
 		catch (Exception e)
 		{
