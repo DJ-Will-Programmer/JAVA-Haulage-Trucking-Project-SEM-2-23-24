@@ -1,10 +1,23 @@
 package apgrouproject;
 
+import org.hibernate.HibernateException;
+import dbConnection.SessionFactoryBuilder;
+
 public class Driver {
 
 	public static void main(String[] args) {
-		new HomeWindow();
-
+		try {
+				new HomeWindow();
+				new LoginForm();		
+		}
+		catch(HibernateException e)
+		{
+			System.err.println("Error initializing Hibernate: " + e.getMessage());
+		}
+		finally
+		{
+			 SessionFactoryBuilder.closeSessionFactory();
+		}
 	}
 
 }
