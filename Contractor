@@ -1,12 +1,18 @@
 //Tianna Lue-Lim: 2109411
 
-package staff;
+package apgrouproject;
 
 import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.swing.JOptionPane;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import dbConnection.SessionFactoryBuilder;
 
 @Entity
 @Table(name="contractors")
@@ -69,5 +75,45 @@ public class Contractor extends Staff
 	public String toString()
 	{
 		return super.toString() + "\nContract Start Date:\t\t" + contractStartDate + "\nContract End Date:\t\t" + contractEndDate;
+	}
+	
+	/*add contract start and end dates to contractor types in the database*/
+	public void createContractDuration(Contractor staff, LocalDate start, LocalDate end)
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+		
+		try
+		{
+			transaction = session.beginTransaction();
+			staff.setContractStartDate(start);
+			staff.setContractEndDate(end);
+			
+			session.update(staff); //update staff with new data
+			transaction.commit();
+			
+			System.out.println(staff.toString());
+			
+			JOptionPane.showMessageDialog(null, "Contract start and end dates have been set.", "Success.", JOptionPane.INFORMATION_MESSAGE);
+		}
+		catch (RuntimeException re)
+		{
+			if(transaction != null)
+			{
+				transaction.rollback();
+			}
+		}
+		catch (Exception ex)
+		{
+			if(transaction != null)
+			{
+				transaction.rollback();
+			}
+			System.err.println("Error setting length of contract: " + ex.getMessage());
+		}
+		finally
+		{
+			session.close();
+		}
 	}
 }
