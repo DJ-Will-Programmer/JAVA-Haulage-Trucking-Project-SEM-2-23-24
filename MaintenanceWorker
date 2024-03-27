@@ -66,10 +66,10 @@ public class MaintenanceWorker extends Contractor
 	{
 		return super.toString() + "\nSpecialization:\t\t\t" + specialization;
 	}
-	
+
+	/*add specialization to maintenance types in the database*/
 	public void addSpecialization(MaintenanceWorker staff, String specialization)
 	{
-		/*add specialization to maintenance types in the database*/
 		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
 		Transaction transaction = null;
 			
