@@ -1,6 +1,6 @@
 //Tianna Lue-Lim: 2109411
 
-package staff;
+package apgrouproject;
 
 import java.time.LocalDate; //to store date objects
 import java.util.List;
@@ -11,10 +11,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.swing.JOptionPane;
 
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
-import factories.SessionFactoryBuilder;
+import dbConnection.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
@@ -290,5 +292,92 @@ public class Staff
 		List<Staff> driverList = session.createQuery("FROM Staff WHERE position = 'Driver'", Staff.class).list();;
 		
 		return driverList;
+	}
+	
+	/*for update staff form: locate the employee record using the ID number entered in the search frame*/
+	public Staff locateEmployeeToUpdate(String id)
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Staff staff = new Staff();
+		
+		try
+		{
+			staff = session.get(Staff.class, id);
+			
+			if(staff != null)
+			{
+				return staff;
+			}
+			else
+			{
+				JOptionPane.showMessageDialog(null, "Employee with ID number " + id + " does not exist.", "Error: Employee not found", JOptionPane.INFORMATION_MESSAGE);
+				System.err.println("Employee with ID number " + id + " does not exist.");
+			}
+		}
+		catch (Exception e)
+		{
+			System.err.println("Error retrieving employee: " + e.getMessage());
+		}
+		finally
+		{
+			session.close();
+		}
+		
+		return staff;
+	}
+	
+	/*method updates staff records in database using new data entered in update form*/
+	public void updateStaff(Staff staff)
+	{
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+		
+		try
+		{
+			transaction = session.beginTransaction();
+			JOptionPane.showMessageDialog(null, "Employee record updated.", "Success", JOptionPane.INFORMATION_MESSAGE);
+			session.update(staff);
+			transaction.commit();
+		}
+		//session.close();
+		catch (Exception e)
+		{
+			if(transaction != null)
+			{
+				JOptionPane.showMessageDialog(null, "Could not update staff record.", "An error occured.", JOptionPane.INFORMATION_MESSAGE);
+				transaction.rollback();
+			}
+			System.err.println("Could not update staff record: " + e.getMessage());
+		}
+	}
+	
+	/*create object of the staff class using the data obtained from the create form and write to database*/
+	public void createStaffMember(Staff dataFromForm)
+	{	
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+		
+		try
+		{
+			transaction = session.beginTransaction();
+			Staff staff = new Staff(dataFromForm);
+						
+			session.save(staff);
+			transaction.commit();
+			
+			System.out.println(staff.toString());
+			
+		}
+		catch (RuntimeException re)
+		{
+			if(transaction != null)
+			{
+				transaction.rollback();
+			}
+		}
+		finally
+		{
+			session.close();
+		}
 	}
 }
