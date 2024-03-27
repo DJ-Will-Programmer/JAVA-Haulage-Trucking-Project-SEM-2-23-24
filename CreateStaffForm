@@ -1,101 +1,130 @@
 //Tianna Lue-Lim: 2109411
 package apgrouproject;
 
-import javax.swing.JInternalFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import dbConnection.SessionFactoryBuilder;
 import java.util.stream.IntStream;
-public class StaffForm extends JInternalFrame {
-	
+
+public class CreateStaffForm extends JInternalFrame {
+
 	private static final long serialVersionUID = 1L;
 
-    /*class attributes*/
+	/* class attributes */
 	private JFrame frame;
 	private JButton submitButton;
 	private JButton clearButton;
 	private JPanel panel;
+	public static final Logger logger = LogManager.getLogger(CreateStaffForm.class);
+
 	private JLabel firstNameLabel;
 	private JTextField firstNameTxt;
 	private JLabel lastNameLabel;
 	private JTextField lastNameTxt;
-	
+
 	private JLabel dateOfBirthLabel;
 	private JLabel dateLabel;
 	private JLabel monthLabel;
 	private JLabel yearLabel;
-	
-	/*create arrays to hold range of valid date, month, and year values*/
-	private final Integer[] dates = IntStream.rangeClosed(1, 31).boxed().toArray((Integer[]::new)); //array of dates	
-	private final Integer[] months = IntStream.rangeClosed(1, 12).boxed().toArray((Integer[]::new));
-	private final Integer[] years = IntStream.rangeClosed(1920, LocalDate.now().getYear()).boxed().toArray((Integer[]::new)); //set max value to current year
-		
-	/*create combo boxes for dates*/
+
+	/* create arrays to hold range of valid date, month, and year values */
+	private final Integer[] dates = IntStream.rangeClosed(1, 31).boxed().toArray((Integer[]::new)); // array of dates
+	private final Integer[] months = IntStream.rangeClosed(1, 12).boxed().toArray((Integer[]::new)); // array of months
+	private final Integer[] years = IntStream.rangeClosed(1954, LocalDate.now().getYear()).boxed()
+			.toArray((Integer[]::new)); // array of years; set max value to current year
+
+	/* create combo boxes for dates */
 	private JComboBox<Integer> dateComboBox;
 	private JComboBox<Integer> monthComboBox;
 	private JComboBox<Integer> yearComboBox;
-	
+
 	private JLabel telephoneLabel;
 	private JTextField telephoneTxt;
 	private JLabel emailLabel;
 	private JTextField emailTxt;
-		
+
 	private JLabel officeLocationLabel;
-	private final String officeLocations[] = {"Kingston", "Montego Bay"};
+	private final String officeLocations[] = { "Kingston", "Montego Bay" };
 	private JComboBox<String> officeLocationComboBox;
-	
+
 	private JLabel positionLabel;
-	private final String positions[] = {"Administrative", "Driver", "Maintenance"};
+	private final String positions[] = { "Administrative", "Driver", "Maintenance" };
 	private JComboBox<String> positionComboBox;
-	
+
 	private JLabel address1Label;
 	private JTextField address1Txt;
 	private JLabel address2Label;
 	private JTextField address2Txt;
 	private JLabel postOfficeLabel;
 	private JTextField postOfficeTxt;
-	
+
 	private JLabel parishLabel;
-	private final String parishes[] = {"Kingston", "St. Andrew", "Portland", "St. Thomas", "St. Catherine", "St. Mary", "St. Ann", 
-										"Manchester", "Clarendon", "Hanover", "Westmoreland", "St. James", "Trelawny", "St. Elizabeth"};
+	private final String parishes[] = { "Kingston", "St. Andrew", "Portland", "St. Thomas", "St. Catherine", "St. Mary",
+			"St. Ann", "Manchester", "Clarendon", "Hanover", "Westmoreland", "St. James", "Trelawny", "St. Elizabeth" };
 	private JComboBox<String> parishComboBox;
-	
+
 	private JLabel statusLabel;
-	private final String statusOptions[] = {"Part-Time", "Full-Time"};
+	private final String statusOptions[] = { "Part-Time", "Full-Time" };
 	private JComboBox<String> statusComboBox;
-	 public static final Logger logger = LogManager.getLogger(StaffForm.class);
-	//parameter-less or default constructor
-	public StaffForm()
+
+	/* for setting admin password */
+	private JLabel passwordLabel;
+	private JPasswordField passwordTxt;
+	private JButton setPasswordButton;
+
+	/* for setting length of contract for contract workers */
+	private JLabel contractStartDateLabel; // entire date (yyyy, mm, dd)
+	private JLabel contractEndDateLabel;
+	private JLabel startDayLabel; // day of the month
+	private JLabel endDayLabel;
+	private JLabel startMonthLabel;
+	private JLabel endMonthLabel;
+	private JLabel startYearLabel;
+	private JLabel endYearLabel;
+	private final Integer[] contractYears = IntStream.rangeClosed(2024, LocalDate.now().getYear()).boxed()
+			.toArray((Integer[]::new)); // array of years; set max value to current year
+	private JComboBox<Integer> startDayComboBox;
+	private JComboBox<Integer> endDayComboBox;
+	private JComboBox<Integer> startMonthComboBox;
+	private JComboBox<Integer> endMonthComboBox;
+	private JComboBox<Integer> startYearComboBox;
+	private JComboBox<Integer> endYearComboBox;
+	private JButton contractButton;
+
+	public CreateStaffForm() // default constructor
 	{
 		super("Java Haulage and Trucking Staff Form", true, true, true, true);
-        //Adding the newWindowsProperties method so that the rate sheet window can display
-        newWindowProperties();
-        panel = new JPanel(); // Initialize JPanel
-        panel.setLayout(null); // Use null layout for manual positioning of components
-        this.add(panel);
-        submitButton = new JButton("Submit"); //initialize button object
-		submitButton.setBounds(150, 660, 230, 30); //define position and size of button
-		panel.add(submitButton); //add the button to the frame	
-		
-		clearButton = new JButton("Clear");//initialize button object
+		// Adding the newWindowsProperties method so that the rate sheet window can
+		// display
+		newWindowProperties();
+		panel = new JPanel(); // Initialize JPanel
+		panel.setLayout(null); // Use null layout for manual positioning of components
+		this.add(panel);
+
+		submitButton = new JButton("Submit"); // initialize button object
+		submitButton.setBounds(150, 660, 230, 30); // define position and size of button
+		panel.add(submitButton); // add the button to the frame
+
+		clearButton = new JButton("Clear");// initialize button object
 		clearButton.setBounds(150, 720, 250, 30);
 		panel.add(clearButton);
-		
-		/*initialize JLabels*/
+
+		/* initialize JLabels */
 		firstNameLabel = new JLabel("First Name: ");
 		lastNameLabel = new JLabel("Last Name: ");
 		dateOfBirthLabel = new JLabel("Date of Birth: ");
@@ -111,8 +140,8 @@ public class StaffForm extends JInternalFrame {
 		postOfficeLabel = new JLabel("Post Office: ");
 		parishLabel = new JLabel("Parish: ");
 		statusLabel = new JLabel("Employee Status: ");
-		
-		/*initialize JTextFields*/
+
+		/* initialize JTextFields */
 		firstNameTxt = new JTextField(200);
 		lastNameTxt = new JTextField(200);
 		telephoneTxt = new JTextField(200);
@@ -120,24 +149,27 @@ public class StaffForm extends JInternalFrame {
 		address1Txt = new JTextField(200);
 		address2Txt = new JTextField(200);
 		postOfficeTxt = new JTextField(200);
-		
-		/*initialize combo boxes*/
+
+		/* initialize combo boxes */
 		dateComboBox = new JComboBox<Integer>(dates);
 		monthComboBox = new JComboBox<Integer>(months);
 		yearComboBox = new JComboBox<Integer>(years);
-		officeLocationComboBox = new JComboBox<String>(officeLocations);	
+		officeLocationComboBox = new JComboBox<String>(officeLocations);
 		positionComboBox = new JComboBox<String>(positions);
 		parishComboBox = new JComboBox<String>(parishes);
 		statusComboBox = new JComboBox<String>(statusOptions);
-		
-		yearComboBox.setSelectedItem(LocalDate.now().getYear()); //set default value in box to the current year
-		
-		/*set position and size of components: x-coordinate, y-coordinate, width, height*/
-		firstNameLabel.setBounds(30, 30, 150, 30); 
+
+		yearComboBox.setSelectedItem(LocalDate.now().getYear()); // set default value in box to the current year
+
+		/*
+		 * set position and size of components: x-coordinate, y-coordinate, width,
+		 * height
+		 */
+		firstNameLabel.setBounds(30, 30, 150, 30);
 		firstNameTxt.setBounds(160, 30, 320, 30);
 		lastNameLabel.setBounds(30, 80, 150, 30);
 		lastNameTxt.setBounds(160, 80, 320, 30);
-		
+
 		dateOfBirthLabel.setBounds(30, 130, 200, 30);
 		dateLabel.setBounds(160, 130, 150, 30);
 		monthLabel.setBounds(270, 130, 150, 30);
@@ -145,7 +177,7 @@ public class StaffForm extends JInternalFrame {
 		dateComboBox.setBounds(160, 155, 95, 30);
 		monthComboBox.setBounds(270, 155, 95, 30);
 		yearComboBox.setBounds(380, 155, 95, 30);
-		
+
 		telephoneLabel.setBounds(30, 210, 150, 30);
 		telephoneTxt.setBounds(160, 210, 320, 30);
 		emailLabel.setBounds(30, 260, 150, 30);
@@ -154,7 +186,7 @@ public class StaffForm extends JInternalFrame {
 		officeLocationComboBox.setBounds(160, 310, 320, 30);
 		positionLabel.setBounds(30, 360, 150, 30);
 		positionComboBox.setBounds(160, 360, 320, 30);
-		
+
 		address1Label.setBounds(30, 410, 150, 30);
 		address1Txt.setBounds(160, 410, 320, 30);
 		address2Label.setBounds(30, 460, 150, 30);
@@ -163,11 +195,11 @@ public class StaffForm extends JInternalFrame {
 		postOfficeTxt.setBounds(160, 510, 320, 30);
 		parishLabel.setBounds(30, 560, 150, 30);
 		parishComboBox.setBounds(160, 560, 320, 30);
-		
+
 		statusLabel.setBounds(30, 610, 150, 30);
 		statusComboBox.setBounds(160, 610, 320, 30);
-				
-		/*add components to frame*/
+
+		/* add components to frame */
 		panel.add(firstNameLabel);
 		panel.add(firstNameTxt);
 		panel.add(lastNameLabel);
@@ -197,106 +229,319 @@ public class StaffForm extends JInternalFrame {
 		panel.add(parishComboBox);
 		panel.add(statusLabel);
 		panel.add(statusComboBox);
-    	
-    		/*add an action listener to the button to write records to the database*/
-    		submitButton.addActionListener(new ActionListener()
-    		{
-    			public void actionPerformed(ActionEvent e)
-    			{										
-    				/*store data entered in form into variables*/
-    				String firstName = firstNameTxt.getText();
-    				String lastName = lastNameTxt.getText();
-    				String dateString = dateComboBox.getSelectedItem().toString();
-    				String monthString = monthComboBox.getSelectedItem().toString();
-    				String yearString = yearComboBox.getSelectedItem().toString();
-    				String telephone = telephoneTxt.getText();
-    				String email = emailTxt.getText();
-    				String officeLocation = officeLocationComboBox.getSelectedItem().toString();
-    				String position = positionComboBox.getSelectedItem().toString();
-    				String address1 = address1Txt.getText();
-    				String address2 = address2Txt.getText();
-    				String postOffice = postOfficeTxt.getText();
-    				String parish = parishComboBox.getSelectedItem().toString();
-    				String status = statusComboBox.getSelectedItem().toString();
-    				
-    				/*convert date values to int and store as date*/
-    				int date = Integer.parseInt(dateString);
-    				int month = Integer.parseInt(monthString);
-    				int year = Integer.parseInt(yearString);
-    				LocalDate dateOfBirth = LocalDate.of(year, month, date);
-    				
-    				Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, 
-    						 officeLocation, position, address1, address2, postOffice, parish, status);
-    				createStaffMember(staff);
-    				
-    				JOptionPane.showMessageDialog(
-    						frame, "Employee record created: " + firstName + " " + lastName, 
-    						"Success", 
-    						JOptionPane.INFORMATION_MESSAGE);
-    				logger.info("Staff data successfully written to the database");
-    				
-    				
-    			}
-    		});
-    		/*Add action listener to the button to clear form data*/
-    		clearButton.addActionListener(new ActionListener()
-    				{
-    					public void actionPerformed(ActionEvent e)
-    					{
-    						//clear form data
-    	    				firstNameTxt.setText("");
-    	    				lastNameTxt.setText("");
-    	    				dateComboBox.setSelectedIndex(0);
-    	    				monthComboBox.setSelectedIndex(0);
-    	    				yearComboBox.setSelectedIndex(0);
-    	    				telephoneTxt.setText("");
-    	    				emailTxt.setText("");
-    	    				officeLocationComboBox.setSelectedIndex(0);
-    	    				positionComboBox.setSelectedIndex(0);
-    	    				address1Txt.setText("");
-    	    				address2Txt.setText("");
-    	    				postOfficeTxt.setText("");
-    	    				parishComboBox.setSelectedIndex(0);
-    	    				statusComboBox.setSelectedItem(LocalDate.now().getYear());
-    	    				logger.info("Staff From data has been cleared!!");
-    					}
-    				});
-    	}
-    	
-    	/*create object of the staff class using the data obtained from the form*/
-    	public static void createStaffMember(Staff dataFromForm)
-    	{	
-    		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-    		Transaction transaction = null;
-    		
-    		try
-    		{
-    			transaction = session.beginTransaction();
-    			Staff staff = new Staff(dataFromForm);
-    			String staffId = staff.generateStaffId();
-    			staff.setStaffId(staffId);
-    			System.out.println(staff.toString());
-    			
-    			session.save(staff);
-    			transaction.commit();
-    			
-    		}
-    		catch (RuntimeException re)
-    		{
-    			if(transaction != null)
-    			{
-    				transaction.rollback();
-    			}
-    		}
-    		finally
-    		{
-    			session.close();
-    		}
+
+		/* add an action listener to the button to write records to the database */
+		submitButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				/* store data entered in form into variables */
+				String firstName = firstNameTxt.getText();
+				String lastName = lastNameTxt.getText();
+				String dateString = dateComboBox.getSelectedItem().toString();
+				String monthString = monthComboBox.getSelectedItem().toString();
+				String yearString = yearComboBox.getSelectedItem().toString();
+				String telephone = telephoneTxt.getText();
+				String email = emailTxt.getText();
+				String officeLocation = officeLocationComboBox.getSelectedItem().toString();
+				String position = positionComboBox.getSelectedItem().toString();
+				String address1 = address1Txt.getText();
+				String address2 = address2Txt.getText();
+				String postOffice = postOfficeTxt.getText();
+				String parish = parishComboBox.getSelectedItem().toString();
+				String status = statusComboBox.getSelectedItem().toString();
+
+				/* convert date values to int and store as date */
+				int date = Integer.parseInt(dateString);
+				int month = Integer.parseInt(monthString);
+				int year = Integer.parseInt(yearString);
+				LocalDate dateOfBirth = LocalDate.of(year, month, date);
+
+				/*
+				 * if else function to prevent the entry of null values for required fields in
+				 * the database table
+				 */
+				if (firstName.isEmpty() || lastName.isEmpty() || telephone.isEmpty() || email.isEmpty()
+						|| address1.isEmpty() || postOffice.isEmpty()) {
+					JOptionPane.showMessageDialog(null,
+							"Cannot record staff data because one or more of the following fields is empty:"
+									+ "\nFirst Name, Last Name, Telephone, Email Address, Address Line 1, or Post Office",
+							"Error: Blank Fields", JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					// create new staff object with values entered
+					Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, officeLocation,
+							position, address1, address2, postOffice, parish, status);
+					String staffId = staff.generateStaffId(); // generate staff ID using random numbers
+					staff.setStaffId(staffId);
+
+					createStaffMember(staff); // function call
+
+					JOptionPane.showMessageDialog(frame, "Employee record created: " + firstName + " " + lastName,
+							"Success", JOptionPane.INFORMATION_MESSAGE);
+
+					/* allowing a password to be set for admin staff only */
+					if (position == "Administrative") {
+						JFrame passwordFrame = new JFrame("Set Password");
+						passwordFrame.setSize(400, 400);
+						passwordFrame.setLayout(null);
+						passwordFrame.setVisible(true);
+						// passwordFrame.setResizable(true);
+						passwordFrame.setLocationRelativeTo(null);
+						passwordFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // program does not stop
+																							// running if close button
+																							// is pressed
+
+						passwordLabel = new JLabel("Password: ");
+						passwordTxt = new JPasswordField(200);
+						passwordLabel.setBounds(30, 360, 100, 30);
+						passwordTxt.setBounds(120, 360, 200, 30);
+						passwordFrame.add(passwordLabel);
+						passwordFrame.add(passwordTxt);
+
+						setPasswordButton = new JButton("Save Password"); // initialize button object
+						setPasswordButton.setBounds(150, 450, 230, 30); // define position and size of button
+						passwordFrame.add(setPasswordButton); // add the button to the frame
+
+						setPasswordButton.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								// if the password field is not empty
+								if (passwordTxt.getText().isEmpty() == false) {
+									passwordFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // close button now
+																									// terminates
+																									// program
+									@SuppressWarnings("deprecation")
+									String password = passwordTxt.getText();
+									Admin admin = new Admin(staffId, firstName, lastName, dateOfBirth, telephone, email,
+											officeLocation, position, address1, address2, postOffice, parish, status,
+											password);
+
+									createAdminPassword(admin, password);
+								} else {
+									// informs the user that the password field cannot be empty
+									JOptionPane.showMessageDialog(passwordFrame, "Password field cannot be empty.",
+											"Error", JOptionPane.INFORMATION_MESSAGE);
+								}
+							}
+						});
+					} // end if
+					/* set length of contract for Contractors */
+					else if (position == "Maintenance" || position == "Driver") {
+						JFrame contractFrame = new JFrame("Set Contract Length");
+						contractFrame.setSize(500, 300);
+						contractFrame.setLayout(null);
+						contractFrame.setVisible(true);
+						contractFrame.setResizable(true);
+						contractFrame.setLocationRelativeTo(null);
+						contractFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+						contractButton = new JButton("OK");
+						contractButton.setBounds(150, 200, 230, 30);
+						contractFrame.add(contractButton);
+
+						/* initialize and set bounds on components */
+						contractStartDateLabel = new JLabel("Start Date: ");
+						contractStartDateLabel.setBounds(50, 50, 150, 30);
+						contractEndDateLabel = new JLabel("End Date: ");
+						contractEndDateLabel.setBounds(50, 120, 150, 30);
+
+						// contract start date
+						startDayLabel = new JLabel("Date");
+						startDayLabel.setBounds(130, 30, 150, 30);
+						startDayComboBox = new JComboBox<Integer>(dates);
+						startDayComboBox.setBounds(130, 55, 95, 30);
+						startMonthLabel = new JLabel("Month");
+						startMonthLabel.setBounds(240, 30, 150, 30);
+						startMonthComboBox = new JComboBox<Integer>(months);
+						startMonthComboBox.setBounds(240, 55, 95, 30);
+						startYearLabel = new JLabel("Year");
+						startYearLabel.setBounds(350, 30, 150, 30);
+						startYearComboBox = new JComboBox<Integer>(contractYears);
+						startYearComboBox.setBounds(350, 55, 95, 30);
+
+						// contract end date
+						endDayLabel = new JLabel("Date");
+						endDayLabel.setBounds(130, 100, 150, 30);
+						endDayComboBox = new JComboBox<Integer>(dates);
+						endDayComboBox.setBounds(130, 125, 95, 30);
+						endMonthLabel = new JLabel("Month");
+						endMonthLabel.setBounds(240, 100, 150, 30);
+						endMonthComboBox = new JComboBox<Integer>(months);
+						endMonthComboBox.setBounds(240, 125, 95, 30);
+						endYearLabel = new JLabel("Year");
+						endYearLabel.setBounds(350, 100, 150, 30);
+						endYearComboBox = new JComboBox<Integer>(contractYears);
+						endYearComboBox.setBounds(350, 125, 95, 30);
+
+						/* add elements to frame */
+						contractFrame.add(contractStartDateLabel);
+						contractFrame.add(startDayLabel);
+						contractFrame.add(startDayComboBox);
+						contractFrame.add(startMonthLabel);
+						contractFrame.add(startMonthComboBox);
+						contractFrame.add(startYearLabel);
+						contractFrame.add(startYearComboBox);
+						contractFrame.add(contractEndDateLabel);
+						contractFrame.add(endDayLabel);
+						contractFrame.add(endDayComboBox);
+						contractFrame.add(endMonthLabel);
+						contractFrame.add(endMonthComboBox);
+						contractFrame.add(endYearLabel);
+						contractFrame.add(endYearComboBox);
+
+						contractButton.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								String startDayString = startDayComboBox.getSelectedItem().toString();
+								String startMonthString = startMonthComboBox.getSelectedItem().toString();
+								String startYearString = startYearComboBox.getSelectedItem().toString();
+								String endDayString = endDayComboBox.getSelectedItem().toString();
+								String endMonthString = endMonthComboBox.getSelectedItem().toString();
+								String endYearString = endYearComboBox.getSelectedItem().toString();
+
+								int startDay = Integer.parseInt(startDayString);
+								int startMonth = Integer.parseInt(startMonthString);
+								int startYear = Integer.parseInt(startYearString);
+								int endDay = Integer.parseInt(endDayString);
+								int endMonth = Integer.parseInt(endMonthString);
+								int endYear = Integer.parseInt(endYearString);
+
+								/* validation checks to ensure the start date is earlier than the end date */
+								if ((startYear > endYear) || (startYear == endYear && startMonth > endMonth)
+										|| (startYear == endYear && startMonth == endMonth && startDay > endDay)) {
+									JOptionPane.showMessageDialog(contractFrame,
+											"Contract start date cannot be later than end date.", "Error",
+											JOptionPane.INFORMATION_MESSAGE);
+								} else if (startYear == endYear && startMonth == endMonth && startDay == endDay) {
+									JOptionPane.showMessageDialog(contractFrame,
+											"Contract start date cannot be the same as end date.", "Error",
+											JOptionPane.INFORMATION_MESSAGE);
+								} else {
+									contractFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+									LocalDate startDate = LocalDate.of(startYear, startMonth, startDay);
+									LocalDate endDate = LocalDate.of(endYear, endMonth, endDay);
+									Contractor contractor = new Contractor(staffId, firstName, lastName, dateOfBirth,
+											telephone, email, officeLocation, position, address1, address2, postOffice,
+											parish, status, startDate, endDate);
+
+									createContractDuration(contractor, startDate, endDate);
+								}
+							}
+						});
+					}
+
+					// add specialization selection for Maintenance
+
+				} // end validation if-else
+
+			} // end actionPerformed
+		}); // end of action listener
+
+		/* Add action listener to the button to clear form data */
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// clear form data
+				firstNameTxt.setText("");
+				lastNameTxt.setText("");
+				dateComboBox.setSelectedIndex(0);
+				monthComboBox.setSelectedIndex(0);
+				yearComboBox.setSelectedItem(LocalDate.now().getYear());
+				telephoneTxt.setText("");
+				emailTxt.setText("");
+				officeLocationComboBox.setSelectedIndex(0);
+				positionComboBox.setSelectedIndex(0);
+				address1Txt.setText("");
+				address2Txt.setText("");
+				postOfficeTxt.setText("");
+				parishComboBox.setSelectedIndex(0);
+				statusComboBox.setSelectedIndex(0);
+				logger.info("Staff From data has been cleared!!");
+			}
+		});
+	} // end of default constructor
+
+	/* create object of the staff class using the data obtained from the form */
+	public static void createStaffMember(Staff dataFromForm) {
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			Staff staff = new Staff(dataFromForm);
+
+			session.save(staff);
+			transaction.commit();
+
+			System.out.println(staff.toString());
+
+		} catch (RuntimeException re) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+		} finally {
+			session.close();
+		}
 	}
-	
-	//Method sets the properties of the Staff window
-	public void newWindowProperties()
-	{
+
+	/* add admin password to admin types in the database */
+	public static void createAdminPassword(Admin staff, String password) {
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			staff.setPassword(password);
+
+			session.update(staff); // update staff with new password
+			transaction.commit();
+
+			System.out.println(staff.toString());
+
+			JOptionPane.showMessageDialog(null, "Admin password has been set.", "Password set.",
+					JOptionPane.INFORMATION_MESSAGE);
+		} catch (RuntimeException re) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+		} catch (Exception ex) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			System.err.println("Error setting admin password: " + ex.getMessage());
+		} finally {
+			session.close();
+		}
+	}
+
+	/* add contract start and end dates to contractor types in the database */
+	public static void createContractDuration(Contractor staff, LocalDate start, LocalDate end) {
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			staff.setContractStartDate(start);
+			staff.setContractEndDate(end);
+
+			session.update(staff); // update staff with new data
+			transaction.commit();
+
+			System.out.println(staff.toString());
+
+			JOptionPane.showMessageDialog(null, "Contract start and end dates have been set.", "Success.",
+					JOptionPane.INFORMATION_MESSAGE);
+		} catch (RuntimeException re) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+		} catch (Exception ex) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			System.err.println("Error setting length of contract: " + ex.getMessage());
+		} finally {
+			session.close();
+		}
+	}
+
+	// Method sets the properties of the Staff window
+	public void newWindowProperties() {
 		this.setSize(600, 450);
 		this.setVisible(true);
 		this.setResizable(true);
