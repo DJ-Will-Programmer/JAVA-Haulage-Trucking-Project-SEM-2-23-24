@@ -1,33 +1,32 @@
-//William Hume ID:2007166
 package apgrouproject;
-import java.awt.BorderLayout;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
+import java.sql.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// Window to display and add to the rate sheet
+import dbConnection.JHTConnection;
 public class RateSheet extends JInternalFrame {
 
     private JButton generateSheet;
     private JButton addRate;
     private JPanel panel;
-
-    private static final long serialVersionUID = 1L;
-    private final String routeAndRate[] = {"Kingston to Spanish Town - $50,000", "Kingston to Stony Hill - $40,000", "Kingston to Portmore - $45,000", "Kingston to Mandeville - $65,000",
-            "Kingston to Montego Bay - $100,000", "Montego Bay to Lucea - $50,000", "Montego Bay to Draxehall - $60,000", "Montego Bay to Kingston - $75,000", "Montego Bay to Black River - $75,000",
-            "Montego Bay to Kingston - $100,000"};
     private JComboBox<String> rateComboBox;
+    private static final long serialVersionUID = 1L;
     public static final Logger logger = LogManager.getLogger(RateSheet.class);
+    private Connection jhtConn = null;
 
     public RateSheet() {
+
         super("Java Haulage and Trucking Rate Sheet", true, true, true, true);
+        //Initializing the jhtCinn connection
+        
+        jhtConn = JHTConnection.getDatabaseConnection();
         //Adding the newWindowsProperties method so that the rate sheet window can display
         newWindowProperties();
-
-        // Displaying a welcome message
-        JOptionPane.showMessageDialog(null, "Welcome to JAVA Haulage and Trucking Rate Sheet", "JAVA Haulage and Trucking", JOptionPane.INFORMATION_MESSAGE);
 
         // Adding the border layout to the panel
         panel = new JPanel(new BorderLayout());
@@ -35,29 +34,22 @@ public class RateSheet extends JInternalFrame {
 
         // Adding the generateSheet button to the frame using border layout
         generateSheet = new JButton("Generate Rate Sheet");
-        generateSheet.setSize(400, 250);
         panel.add(generateSheet, BorderLayout.WEST);
+
 
         // Adding the add rate button
         addRate = new JButton("Add Route & Rate");
-        addRate.setSize(400, 250);
         panel.add(addRate, BorderLayout.EAST);
 
         // Initialize JComboBox
-        rateComboBox = new JComboBox<>(routeAndRate);
-
+        rateComboBox = new JComboBox<>();
+        panel.add(rateComboBox, BorderLayout.CENTER);
         // Adding action listener to the generateSheet button to display the rate combo box when called
         generateSheet.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Check if the rateComboBox is already added to the panel
-                if (!panel.isAncestorOf(rateComboBox)) {
-                    // Adding the combo box to the frame
-                    panel.add(rateComboBox, BorderLayout.CENTER);
-                    panel.revalidate(); // Refresh the layout
-                    panel.repaint(); // Repaint the panel
-                    logger.info("Displaying rate sheet combo box");
-                }
+                displayRouteAndRate();
+                logger.info("Successfully displaying the route as a combo box");
             }
         });
 
@@ -65,31 +57,139 @@ public class RateSheet extends JInternalFrame {
         addRate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String input = JOptionPane.showInputDialog(null, "Please enter a new route and its rate starting from either Kingston or Montego Bay", "Add New Route", JOptionPane.INFORMATION_MESSAGE);
-                // Check if input is not null and not empty
-                if (input != null && !input.isEmpty()) {
-                    addRouteAndRates(input);
-                    logger.info("A new route has been added to the rate sheet");
+                //Using input dialogues to get admin data for the database
+                String sourceAddress = JOptionPane.showInputDialog(null, "Please enter source address (office location) of Kingston or Montego Bay:", "Add New Source Address", JOptionPane.INFORMATION_MESSAGE);
+
+                String destinationAddress = JOptionPane.showInputDialog(null, "Please enter destination address eg Mandeville:", "Add New Destination Address", JOptionPane.INFORMATION_MESSAGE);
+
+                String inputRate = JOptionPane.showInputDialog(null, "Please enter rate for the route:", "Add New Rate", JOptionPane.INFORMATION_MESSAGE);
+
+             // Check if inputRate is not null before proceeding
+                if (inputRate != null) {
+                    // Check if inputRate is not empty before parsing it
+                    if (!inputRate.trim().isEmpty()) {
+                        try {
+                            // Parse the string input to double
+                            double rate = Double.parseDouble(inputRate);
+                            //Calling function to write the code to the database
+                            createRouteAndRate(sourceAddress, destinationAddress, rate);
+                            // Refresh combo box
+                            displayRouteAndRate();
+                        } catch (NumberFormatException e1) {
+                            // Handle invalid input
+                            JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid double value.");
+                            e1.printStackTrace();
+                        }
+                    } else {
+                        // Handle the case where the user didn't enter any value
+                        JOptionPane.showMessageDialog(null, "No input provided. Please enter a valid value for the rate.");
+                    }
+                } else {
+                    // Handle the case where the user canceled the input dialog
+                    JOptionPane.showMessageDialog(null, "Input dialog canceled. Please provide a valid value for the rate.");
                 }
+                logger.info("A new route has been added to the rate sheet");
             }
         });
     }
-    
+
     //Method contains properties for the window to function
-    public void newWindowProperties()
+    public void newWindowProperties() {
+        this.setSize(600, 450);
+        this.setVisible(true);
+        this.setResizable(true);
+    }
+
+    //Method adds data to the database for the route and rate
+    public void createRouteAndRate(String sourceAddress, String destinationAddress, double rate) {
+        try {
+            //Build SQL statement to insert a new rate
+            String sql = "INSERT INTO rates (`sourceAddress`, `destinationAddress`, `rate`) VALUES (?, ?, ?)";
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(sql);
+            // Set the values for the parameters
+            statement.setString(1, sourceAddress);
+            statement.setString(2, destinationAddress);
+            statement.setDouble(3, rate);
+            // Execute the query
+            statement.executeUpdate();
+            // Close the statement
+            statement.close();
+            System.out.println("Route and associated rate data have been successfully stored in the rates table!");
+            logger.info("Data successfully written to the rates table");
+        } catch (SQLException e) {
+            System.out.println("Error adding data to the rates table: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    //Method to display the route and rates as a JComboBox
+    public JComboBox<String> displayRouteAndRate() {
+        rateComboBox.removeAllItems();
+        try {
+            // Query to retrieve data from the rates table
+            String query = "SELECT CONCAT(sourceAddress, ' - ', destinationAddress) AS route FROM rates";
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(query);
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery();
+            // Iterate through the result set
+            while (resultSet.next()) {
+                rateComboBox.addItem(resultSet.getString("route"));
+            }
+            // Close the statement and result set
+            statement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            System.out.println("Error retrieving data from rates table: " + e.getMessage());
+            e.printStackTrace();
+            logger.error("Failed to retrieve data from rates table!!!!!");
+        }
+		return rateComboBox;
+    }
+    
+    //Method displays the rate for an associated route by searching the rates table
+    public double getRate(JComboBox<String> routeComboBox)
     {
-    	this.setSize(600, 450);
-		this.setVisible(true);
-		this.setResizable(true);
-    }
+    	double rate = 0.0;
+        String selectedRoute = (String) routeComboBox.getSelectedItem();
+    	try {
+            // Query to retrieve the rate for the selected route from the rates table
+            String query = "SELECT rate FROM rates WHERE CONCAT(sourceAddress, ' - ', destinationAddress) = ?";
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(query);
+            // Set the selected route as a parameter
+            statement.setString(1, selectedRoute);
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery();
+            // Check if a result is found
+            if (resultSet.next()) {
+                // Retrieve the rate from the result set
+                rate = resultSet.getDouble("rate");
+            }
+            // Close the statement and result set
+            statement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            System.out.println("Error retrieving rate for route: " + e.getMessage());
+            e.printStackTrace();
+            logger.error("Failed to retrieve rate for route from rates table!!!!!");
+        }
 
-    // Method allows the user to add routes and rates into the system
-    public void addRouteAndRates(String routeAndRate) {
-        rateComboBox.addItem(routeAndRate);
+        return rate;
     }
-
-    // Method gets the combo box so that it can be used in the booking form
-    public JComboBox<String> getRate() {
-        return rateComboBox;
-    }
+    
+  //Gets the location of the company location from which the order was made
+    public String getSourceAddress(String sourceAddress)
+    {
+    	   String address;
+           if (sourceAddress.startsWith("Kingston")) {
+               address = "21 Marcus Garvey Drive, Kingston 6";
+           } else if (sourceAddress.startsWith("Montego Bay")) {
+               address = "32 Harbour Street, St. James";
+           } else {
+               address = "Address not available";
+           }
+          return address;
+    } 
 }
