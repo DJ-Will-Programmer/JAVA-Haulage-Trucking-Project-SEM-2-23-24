@@ -1,0 +1,310 @@
+//Kyshauny Bailey ID#2103915
+
+package apgrouproject;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Random;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Root;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.CriteriaQuery;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
+
+import dbConnection.SessionFactoryBuilder;
+
+//Hibernate mapping to class attributes
+@Entity
+@Table(name = "orders")
+public class Orders {
+    @Id
+    @Column(name = "invoiceNumber")
+    private String invoiceNumber;
+
+    @Column(name = "company")
+    private String company;
+
+    @Column(name = "sourceAddress")
+    private String sourceAddress;
+
+    @Column(name = "destinationAddress")
+    private String destinationAddress;
+
+    @Column(name = "rate")
+    private double rate;
+
+    @Column(name = "driver")
+    private String driver;
+
+    @Column(name = "date")
+    private String date;
+    // Getting logging for the class
+    public static final Logger logger = LogManager.getLogger(Orders.class);
+
+    // Default Constructor
+    public Orders() {
+        invoiceNumber = "";
+        company = "";
+        sourceAddress = "";
+        destinationAddress = "";
+        rate = 0.00;
+        driver = "";
+        date = ""; // format of yyyy-dd-mm
+    }
+
+    // Primary Constructor
+    public Orders(String invoiceNumber, String company, String sourceAddress, String destinationAddress, double rate,
+            String driver, String date) {
+        this.invoiceNumber = invoiceNumber;
+        this.company = company;
+        this.sourceAddress = sourceAddress;
+        this.destinationAddress = destinationAddress;
+        this.rate = rate;
+        this.driver = driver;
+        this.date = date;
+    }
+
+    // Copy constructor
+    public Orders(Orders orders) {
+        this.invoiceNumber = orders.invoiceNumber;
+        this.company = orders.company;
+        this.sourceAddress = orders.sourceAddress;
+        this.destinationAddress = orders.destinationAddress;
+        this.rate = orders.rate;
+        this.driver = orders.driver;
+        this.date = orders.date;
+    }
+
+    // Accessors and Mutators
+    public String getInvoiceNumber() {
+        return invoiceNumber;
+    }
+
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public String getSourceAddress() {
+        return sourceAddress;
+    }
+
+    public void setSourceAddress(String sourceAddress) {
+        this.sourceAddress = sourceAddress;
+    }
+
+    public String getDestinationAddress() {
+        return destinationAddress;
+    }
+
+    public void setDestinationAddress(String destinationAddress) {
+        this.destinationAddress = destinationAddress;
+    }
+
+    public double getRate() {
+        return rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
+    public String getDriver() {
+        return driver;
+    }
+
+    public void setDriver(String driver) {
+        this.driver = driver;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    // toString
+    @Override
+    public String toString() {
+        return "\nInvoice Number: " + invoiceNumber + "\nCompany: " + company + "\n Source Address: " + sourceAddress
+                + "\n Destination Address: " + destinationAddress + "\n Rate: " + rate + "\n Driver: " + driver
+                + "\n Date: " + date;
+    }
+
+    // Generates a unique string for an invoice number
+    // Creating a static attribute to hold the characters used to make up the
+    // invoice number
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    // Creating a static attribute to declare a constant length of 7 for the invoice
+    private static final int LENGTH = 7;
+
+    public static String generateInvoiceNumber() {
+        // Calling random method
+        Random random = new Random();
+        // Creating an object of the StringBuilder class to hold the string
+        StringBuilder invoiceBuilder = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            invoiceBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return invoiceBuilder.toString();
+    }
+
+    // Create object of the orders class using the data obtained from the booking
+    // form and write to database
+    public void createOrders(Orders dataFromForm) { // Gets Hibernate session
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+
+            transaction = session.beginTransaction();
+            Orders orders = new Orders(dataFromForm);
+
+            session.save(orders);
+            transaction.commit();
+            logger.info("Database entry successful.Booking form data writtten to orders table");
+            System.out.println(orders.toString());
+
+        } catch (RuntimeException re) {
+            if (transaction != null) {
+                transaction.rollback();
+                logger.error("Failed to write Booking form data to orders table");
+            }
+        } finally {
+            session.close();
+        }
+    }
+
+    // Method searches for orders based on a particular period and displays results
+    // in a table
+    public void searchAndDisplayByPeriod(List<Orders> orders, String startPeriod, String endPeriod) {
+        try {
+            // Parse the start and end periods into LocalDate objects
+            LocalDate startDate = LocalDate.parse(startPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate endDate = LocalDate.parse(endPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+            // Create a JFrame to display the table
+            JFrame frame = new JFrame("Search Results");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            // Create a DefaultTableModel for the JTable
+            DefaultTableModel model = new DefaultTableModel();
+            JTable table = new JTable(model);
+
+            // Add columns to the table model
+            model.addColumn("Invoice Number");
+            model.addColumn("Company");
+            model.addColumn("Source Address");
+            model.addColumn("Destination Address");
+            model.addColumn("Rate");
+            model.addColumn("Driver");
+            model.addColumn("Date");
+
+            // Add rows to the table model
+            for (Orders order : orders) {
+                model.addRow(new Object[] {
+                        order.getInvoiceNumber(),
+                        order.getCompany(),
+                        order.getSourceAddress(),
+                        order.getDestinationAddress(),
+                        order.getRate(),
+                        order.getDriver(),
+                        order.getDate()
+                });
+            }
+
+            // Add the table to a scroll pane
+            JScrollPane scrollPane = new JScrollPane(table);
+            frame.add(scrollPane);
+            frame.pack();
+            frame.setVisible(true);
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(null, "Invalid date format!!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            logger.error("Failed to parse date");
+        }
+    }
+
+    // Method searches for orders based on a particular period
+    public void searchAndDisplayByDriver(String driver) {
+        try {
+            // Open a Hibernate session
+            Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = session.beginTransaction();
+
+            // Use Criteria API to construct the query
+            List<Orders> orders = session.createCriteria(Orders.class).add(Restrictions.eq("driver", driver)).list();
+
+            // Create a JFrame to display the table
+            JFrame frame = new JFrame("Search Results");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            // Create a DefaultTableModel for the JTable
+            DefaultTableModel model = new DefaultTableModel();
+            JTable table = new JTable(model);
+
+            // Add columns to the table model
+            model.addColumn("Invoice Number");
+            model.addColumn("Company");
+            model.addColumn("Source Address");
+            model.addColumn("Destination Address");
+            model.addColumn("Rate");
+            model.addColumn("Driver");
+            model.addColumn("Date");
+
+            // Add rows to the table model
+            for (Orders order : orders) {
+                model.addRow(new Object[] {
+                        order.getInvoiceNumber(),
+                        order.getCompany(),
+                        order.getSourceAddress(),
+                        order.getDestinationAddress(),
+                        order.getRate(),
+                        order.getDriver(),
+                        order.getDate()
+                });
+            }
+
+            // Add the table to a scroll pane
+            JScrollPane scrollPane = new JScrollPane(table);
+            frame.add(scrollPane);
+            frame.pack();
+            frame.setVisible(true);
+
+            transaction.commit();
+
+            // Close the session
+            session.close();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            logger.error("Failed to retrieve data for the specified driver");
+        }
+    }
+}
