@@ -1,11 +1,14 @@
 //William Hume ID:2007166
 package apgrouproject;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -13,9 +16,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
+
 import com.toedter.calendar.JCalendar;
 import dbConnection.FormDatabase;
 import java.text.SimpleDateFormat;
@@ -43,6 +50,7 @@ public class BookingForm extends JInternalFrame {
 	private JComboBox<String> driver;
 	private JCalendar date;
 	private String invoiceNoValue;
+	private JTable ordersTable;
 	public static final Logger logger = LogManager.getLogger(BookingForm.class);
 
 	// Creating form
@@ -283,22 +291,16 @@ public class BookingForm extends JInternalFrame {
 
 		// Adding action listener to the oerderPeriod button
 		orderPeriod.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
-				// Asking the admin to enter the start period for the query
+				// Get the start and end periods from the user
 				String startPeriod = JOptionPane.showInputDialog(null, "Enter the start date in the form yyyy-MM-dd",
 						"Java Haulage and Trucking Start Period Input", JOptionPane.INFORMATION_MESSAGE);
-
-				// Asking the admin to enter the end period for the query
 				String endPeriod = JOptionPane.showInputDialog(null, "Enter the end date in the form yyyy-MM-dd",
 						"Java Haulage and Trucking End Period Input", JOptionPane.INFORMATION_MESSAGE);
-				Orders ords = new Orders();
-				// Calling the method from the OrdersDatabase class
-				ords.searchByPeriod(startPeriod, endPeriod);
-
+				Orders ord = new Orders();
+				ord.searchAndDisplayByPeriod(null, startPeriod, endPeriod);
 			}
 		});
-
 		// Adding the driverOrders button the form
 		driverOrders = new JButton("Generate Driver Orders");
 		gbc.gridx = 2;
@@ -315,8 +317,10 @@ public class BookingForm extends JInternalFrame {
 						"Enter the name of the driver you want to search for:",
 						"Java Haulage and Trucking Driver Search Input", JOptionPane.INFORMATION_MESSAGE);
 				// Calling the method from the OrdersDatabase class
-				Orders ordDriver = new Orders();
-				ordDriver.searchByDriver(driverName);
+				SwingUtilities.invokeLater(() -> {
+					Orders ordDriver = new Orders();
+					ordDriver.searchAndDisplayByDriver(driverName);
+				});
 			}
 		});
 	}
