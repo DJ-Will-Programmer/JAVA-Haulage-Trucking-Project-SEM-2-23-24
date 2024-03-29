@@ -1,5 +1,5 @@
 //William Hume ID#2007166
-package DBConnection;
+package dbConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import javax.swing.JOptionPane;
@@ -13,14 +13,14 @@ public class JHTConnection {
 	public static Connection getDatabaseConnection()
 	{
 		//Defines the URL string for connecting to the MySQL database named java_haulage_and_trucking.
-		String url = "jdbc:mysql://localhost:3306/java_haulage_and_trucking";
+		  String url = "jdbc:mysql://localhost:3307/final_java_haulage_and_trucking";
 		try
 		{	//Checks if the jhtConnection object is null. If it is null, 
 			//it means that a connection has not been established yet, so a new connection is created.
 			if(jhtConnection == null)
 			{
-				//Uses the DriverManager class to establish a database connection using the provided URL, username and password
-				jhtConnection = DriverManager.getConnection(url, "root", "");
+				//Uses the DriverManager class to establish a database connection using the provided URL, user name and password
+				jhtConnection = DriverManager.getConnection(url, "root", "usbw");
 				//Displaying the message below to the user in a dialogue box
 				JOptionPane.showMessageDialog(null, "Connected to Local Server", "JDBC Connection Status", JOptionPane.INFORMATION_MESSAGE);
 			}
