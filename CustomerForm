@@ -3,42 +3,36 @@ package apgrouproject;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import dbConnection.SessionFactoryBuilder;
-import apgrouproject.Customer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-public class CustomerForm extends JInternalFrame implements ActionListener{
+public class CustomerForm extends JInternalFrame{
 	private JPanel pane;
-    private JTextField txtCompany, txtContactPerson, txtAddress1, txtAddress2, txtPostOffice, txtParish, txtTelephone, txtEmail;
-    private JButton btnSubmit;
+	private JTextField txtCompany, txtContactPerson, txtAddress1, txtAddress2, txtPostOffice, txtParish, txtTelephone,
+			txtEmail;
+	private JButton btnSubmit, btnClear;
 	private static final long serialVersionUID = 1L;
 	public static final Logger logger = LogManager.getLogger(CustomerForm.class);
+
 	public CustomerForm()
 	{
-		super("Java Haulage and Trucking Customer Form", true, true, true, true);
+		super("Java Haulage and Trucking Customer Registration Form", true, true, true, true);
         //Adding the newWindowsProperties method so that the rate sheet window can display
         newWindowProperties();
         
-        setTitle("JHT Customer Registration");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 470, 600);
+ 
         pane = new JPanel();
         pane.setBackground(new Color(240, 240, 240)); 
         pane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -128,89 +122,88 @@ public class CustomerForm extends JInternalFrame implements ActionListener{
         btnSubmit.setForeground(Color.WHITE);
         btnSubmit.setBounds(180, 460, 100, 30); 
         btnSubmit.setToolTipText("Submit");
-        btnSubmit.addActionListener(this);
         pane.add(btnSubmit);
 
+        btnClear = new JButton("Clear");
+        btnClear.setFont(new Font("Verdana", Font.PLAIN, 14));
+        btnClear.setBackground(Color.BLACK);
+        btnClear.setForeground(Color.WHITE);
+        btnClear.setBounds(290, 460, 100, 30);
+        btnClear.setToolTipText("Submit");
+        pane.add(btnClear);
         setVisible(true);
-    }
+        
+        btnSubmit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String customerId = Customer.getCustomersId();
+                String company = txtCompany.getText();
+                String contactPerson = txtContactPerson.getText();
+                String address2 = txtAddress2.getText();
+                String address1 = txtAddress1.getText();
+                String postOffice = txtPostOffice.getText();
+                String parish = txtParish.getText();
+                String telephone = txtTelephone.getText();
+                String email = txtEmail.getText();
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == btnSubmit) {
-        	String customerId = Customer.getCustomersId();
-            String company = txtCompany.getText();
-            String contactPerson = txtContactPerson.getText();
-            String address2 = txtAddress2.getText();
-            String address1 = txtAddress1.getText();
-            String postOffice = txtPostOffice.getText();
-            String parish = txtParish.getText();
-            String telephone = txtTelephone.getText();
-            String email = txtEmail.getText();
-           
-           if (customerId.isEmpty() || company.isEmpty() || contactPerson.isEmpty() || address1.isEmpty() || address2.isEmpty()|| postOffice.isEmpty() || parish.isEmpty() || telephone.isEmpty() || email.isEmpty())
-           {
-               JOptionPane.showMessageDialog(null, "Cannot create account because one or more required fields are empty:\n"
-                       + "Customer ID, Company, Contact Person, Address 1, Address 2, Post Office, Parish, Telephone, or Email", "Error: Blank Fields", JOptionPane.INFORMATION_MESSAGE);
-           } else {
-           	// Create new customer object with values entered
-           	Customer customer = new Customer(customerId, company, contactPerson, address1, address2, postOffice, parish, telephone, email, "", 0.00, "");
+                if (customerId.isEmpty() || company.isEmpty() || contactPerson.isEmpty() || address1.isEmpty()
+                        || postOffice.isEmpty() || parish.isEmpty() || telephone.isEmpty() || email.isEmpty()) {
+                    JOptionPane.showMessageDialog(null,
+                            "Cannot create account because one or more required fields are empty:\n"
+                                    + "Customer ID, Company, Contact Person, Address 1, Address 2, Post Office, Parish, Telephone, or Email",
+                            "Error: Blank Fields", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Create new customer object with values entered
+                    Customer customer = new Customer(customerId, company, contactPerson, address1, address2, postOffice,
+                            parish, telephone, email, "", 0.00);
 
-           	createCustomer(customer); // Function call to save customer details to the database
+                    createCustomer(customer); // Function call to save customer details to the database
+                    customer.checkAndUpdateCustomerStatus();
+                    // Show success message
+                    JOptionPane.showMessageDialog(pane, "Customer account created: " + customerId, "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
 
-           	// Show success message
-           	JOptionPane.showMessageDialog(
-           	    pane, "Customer account created: " + customerId, 
-           	    "Success", 
-           	    JOptionPane.INFORMATION_MESSAGE);
-           	
-           	// Clear input fields
-               txtCustomerId.setText("");
-               txtCompany.setText("");
-               txtContactPerson.setText("");
-               txtAddress1.setText("");
-               txtAddress2.setText("");
-               txtPostOffice.setText("");
-               txtParish.setText("");
-               txtTelephone.setText("");
-               txtEmail.setText("");
-
-               // Dispose the frame
-               dispose();
-           }
-           
-           }
-        }
-      
-        public static void createCustomer(Customer customer) {
-    		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
-            Transaction transaction = null;
-
-            try 
-            {
-                transaction = session.beginTransaction();
-                session.save(customer);
-                transaction.commit();
-
-                System.out.println(customer.toString());
-
-            } 
-            catch (RuntimeException re) 
-            {
-                if (transaction != null) 
-                {
-                    transaction.rollback();
                 }
-                re.printStackTrace();
-            } 
-            finally 
-            {
-                session.close();
             }
-        }
-  
-	////Method sets the properties of the customer window
-	public void newWindowProperties()
-	{
+        });
+
+        btnClear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtCompany.setText("");
+                txtContactPerson.setText("");
+                txtAddress1.setText("");
+                txtAddress2.setText("");
+                txtPostOffice.setText("");
+                txtParish.setText("");
+                txtTelephone.setText("");
+                txtEmail.setText("");
+            }
+        });
+	}
+
+	public static void createCustomer(Customer customer) {
+		Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+			session.save(customer);
+			transaction.commit();
+
+			System.out.println(customer.toString());
+
+		} catch (RuntimeException re) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			re.printStackTrace();
+		} finally {
+			session.close();
+		}
+	}
+
+	//// Method sets the properties of the customer window
+	public void newWindowProperties() {
 		this.setSize(600, 450);
 		this.setVisible(true);
 		this.setResizable(true);
