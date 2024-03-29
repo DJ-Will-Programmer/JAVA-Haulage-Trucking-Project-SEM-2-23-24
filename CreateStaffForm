@@ -29,6 +29,7 @@ public class CreateStaffForm extends JInternalFrame {
 	private JFrame frame;
 	private JButton submitButton;
 	private JButton clearButton;
+	private JButton salariesButton;
 	private JPanel panel;
 	public static final Logger logger = LogManager.getLogger(CreateStaffForm.class);
 
@@ -129,6 +130,10 @@ public class CreateStaffForm extends JInternalFrame {
 		clearButton = new JButton("Clear");// initialize button object
 		clearButton.setBounds(150, 720, 250, 30);
 		panel.add(clearButton);
+		
+		salariesButton = new JButton("Display Salaries");
+		salariesButton.setBounds(150, 780, 270, 30);
+		panel.add(salariesButton);
 
 		/* initialize JLabels */
 		firstNameLabel = new JLabel("First Name: ");
@@ -239,7 +244,6 @@ public class CreateStaffForm extends JInternalFrame {
 		/* add an action listener to the button to write records to the database */
 		submitButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
 				/* store data entered in form into variables */
 				String firstName = firstNameTxt.getText();
 				String lastName = lastNameTxt.getText();
@@ -261,7 +265,7 @@ public class CreateStaffForm extends JInternalFrame {
 				int month = Integer.parseInt(monthString);
 				int year = Integer.parseInt(yearString);
 				LocalDate dateOfBirth = LocalDate.of(year, month, date);
-
+			
 				/*
 				 * if else function to prevent the entry of null values for required fields in
 				 * the database table
@@ -275,17 +279,16 @@ public class CreateStaffForm extends JInternalFrame {
 				} else {
 					// create new staff object with values entered
 					Staff staff = new Staff("", firstName, lastName, dateOfBirth, telephone, email, officeLocation,
-							position, address1, address2, postOffice, parish, status);
+							position, address1, address2, postOffice, parish, status, 0.00);
 					String staffId = staff.generateStaffId(); // generate staff ID using random numbers
 					staff.setStaffId(staffId); //set the Staff ID as the random generated number
-
 					staff.createStaffMember(staff); // call to function in Staff class that writes staff objects to database
 
 					JOptionPane.showMessageDialog(frame, "Employee record created: " + firstName + " " + lastName,
 							"Success", JOptionPane.INFORMATION_MESSAGE);
 
 					/* allowing a password to be set for admin staff only */
-					if (position == "Administrative") {
+					if (position .equals("Administrative")) {
 						JFrame passwordFrame = new JFrame("Set Password");
 						passwordFrame.setSize(400, 400);
 						passwordFrame.setLayout(null);
@@ -315,7 +318,7 @@ public class CreateStaffForm extends JInternalFrame {
 									@SuppressWarnings("deprecation")
 									String password = passwordTxt.getText();
 									Admin admin = new Admin(staffId, firstName, lastName, dateOfBirth, telephone, email,
-											officeLocation, position, address1, address2, postOffice, parish, status,
+											officeLocation, position, address1, address2, postOffice, parish, status, 0.00,
 											password);
 
 									admin.createAdminPassword(admin, password);
@@ -329,7 +332,7 @@ public class CreateStaffForm extends JInternalFrame {
 						});
 					} // end if
 					/* set length of contract for Contractors */
-					else if (position == "Maintenance" || position == "Driver") {
+					else if (position.equals("Maintenance") || position.equals("Driver")) {
 						JFrame contractFrame = new JFrame("Set Contract Length");
 						contractFrame.setSize(500, 300);
 						contractFrame.setLayout(null);
@@ -423,13 +426,13 @@ public class CreateStaffForm extends JInternalFrame {
 									LocalDate endDate = LocalDate.of(endYear, endMonth, endDay);
 									Contractor contractor = new Contractor(staffId, firstName, lastName, dateOfBirth,
 											telephone, email, officeLocation, position, address1, address2, postOffice,
-											parish, status, startDate, endDate);
+											parish, status, 0.00, startDate, endDate);
 
 									contractor.createContractDuration(contractor, startDate, endDate);
 									contractFrame.dispose(); //close frame after button is clicked, if the start and end dates are valid
 									
 									/*selection of specialization for maintenance workers*/
-									if(position == "Maintenance")
+									if(position.equals("Maintenance"))
 									{
 										JFrame specializationFrame = new JFrame("Set Maintenance Specialization");
 										specializationFrame.setSize(400, 200);
@@ -462,7 +465,7 @@ public class CreateStaffForm extends JInternalFrame {
 												System.out.println(specialization);
 												
 												MaintenanceWorker maintenance = new MaintenanceWorker(staffId, firstName, lastName, dateOfBirth, telephone, email, 
-														officeLocation, position, address1, address2, postOffice, parish, status, startDate, endDate, specialization);
+														officeLocation, position, address1, address2, postOffice, parish, status,0.00, startDate, endDate, specialization);
 												
 												maintenance.addSpecialization(maintenance, specialization); //call function from MaintenanceWorker class
 												specializationFrame.dispose();
@@ -498,6 +501,16 @@ public class CreateStaffForm extends JInternalFrame {
 				parishComboBox.setSelectedIndex(0);
 				statusComboBox.setSelectedIndex(0);
 				logger.info("Staff From data has been cleared!!");
+			}
+		});
+		
+		//Add action listener to salaries button
+		salariesButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e)
+			{
+				//Calling function
+				Staff staff1 = new Staff();
+				staff1.displayStaffSalaries();
 			}
 		});
 	} // end of default constructor
