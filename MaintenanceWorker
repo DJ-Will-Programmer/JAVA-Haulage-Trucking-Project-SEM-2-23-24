@@ -1,6 +1,5 @@
 //Tianna Lue-Lim: 2109411
-
-package staff;
+package apgrouproject;
 
 import java.time.LocalDate;
 
@@ -12,7 +11,7 @@ import javax.swing.JOptionPane;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import factories.SessionFactoryBuilder;
+import dbConnection.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
@@ -32,11 +31,11 @@ public class MaintenanceWorker extends Contractor
 	
 	//primary constructor
 	public MaintenanceWorker(String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
-			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, 
+			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, double salary, 
 			LocalDate start, LocalDate end, String specialization)
 	{
 		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
-				officeLocation, position, address1, address2, postOffice, parish, status, start, end);
+				officeLocation, position, address1, address2, postOffice, parish, status, salary, start, end);
 		this.specialization = specialization;
 	}
 	
@@ -46,7 +45,7 @@ public class MaintenanceWorker extends Contractor
 		super(maintenanceWorker.staffId, maintenanceWorker.firstName, maintenanceWorker.lastName, maintenanceWorker.dateOfBirth,
 				maintenanceWorker.telephone, maintenanceWorker.email, maintenanceWorker.officeLocation, maintenanceWorker.position, 
 				maintenanceWorker.address1, maintenanceWorker.address2, maintenanceWorker.postOffice, maintenanceWorker.parish, 
-				maintenanceWorker.status, maintenanceWorker.contractStartDate, maintenanceWorker.contractEndDate);
+				maintenanceWorker.status, maintenanceWorker.salary, maintenanceWorker.contractStartDate, maintenanceWorker.contractEndDate);
 		this.specialization = maintenanceWorker.specialization;
 	}
 
