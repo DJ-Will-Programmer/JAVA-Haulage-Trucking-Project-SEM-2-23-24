@@ -1,6 +1,11 @@
- //William Hume ID:2007166
+//William Hume ID:2007166
 package apgrouproject;
+
 import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -14,23 +19,28 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-public class HomeWindow extends JFrame{
-	
+
+public class HomeWindow extends JFrame {
+
 	private static final long serialVersionUID = 1L;
 	private JDesktopPane desktop;
 	private JMenuBar menuBar;
 	private JMenu home;
 	private JMenu rateSheet;
 	private JMenu bookingForm;
+	private JMenu staff;
+	private JMenu customer;
 	private JMenuItem menuItemRateSheet;
 	private JMenuItem menuItemBookingForm;
-	//private JMenuItem menuItemStaff;
-	//private JMenuItem menuItemCustomer;
+	private JMenuItem menuItemStaffForm;
+	private JMenuItem menuItemCustomerForm;
 	private JMenuItem save;
 	private MenuItem menuOpen;
 	private MenuItem menuClose;
@@ -39,9 +49,11 @@ public class HomeWindow extends JFrame{
 	private Toolkit toolKit = Toolkit.getDefaultToolkit();
 	private Image image = toolKit.getImage("./images/app.png");
 	public static final Logger logger = LogManager.getLogger(HomeWindow.class);
-	//Default constructor calls the methods in the class
-	public HomeWindow()
-	{
+	// New instance variable for the login for
+
+	// Default constructor calls the methods in the class
+	public HomeWindow() {
+		
 		initializeComponenets();
 		addMenuItemsToPopup();
 		addMenuToMenuBar();
@@ -49,11 +61,12 @@ public class HomeWindow extends JFrame{
 		addComponentsToWindow();
 		registerListener();
 		setWindowProperties();
+		displayWelcomeMessage();
 		logger.info("Java Haulage and Trucking MDI running successfully.");
 	}
-	//Initialize the components of the home window
-	public void initializeComponenets()
-	{
+
+	// Initialize the components of the home window
+	public void initializeComponenets() {
 		this.setTitle("JAVA Haulage and Trucking");
 		desktop = new JDesktopPane();
 		menuBar = new JMenuBar();
@@ -63,8 +76,14 @@ public class HomeWindow extends JFrame{
 		rateSheet.setMnemonic('R');
 		bookingForm = new JMenu("Booking Form");
 		bookingForm.setMnemonic('B');
-		menuItemRateSheet = new JMenuItem("Rout and Rate Sheet");
+		staff = new JMenu("Staff Form");
+		staff.setMnemonic('S');
+		customer = new JMenu("Customer Form");
+		customer.setMnemonic('C');
+		menuItemRateSheet = new JMenuItem("Route and Rate Sheet");
 		menuItemBookingForm = new JMenuItem("Booking Form");
+		menuItemStaffForm = new JMenuItem("Staff Form");
+		menuItemCustomerForm = new JMenuItem("Customer Form");
 		save = new JMenuItem("Save");
 		save.setToolTipText("Saves the active document");
 		menuOpen = new MenuItem("Open");
@@ -73,39 +92,40 @@ public class HomeWindow extends JFrame{
 		trayIcon = new TrayIcon(image);
 		trayIcon.setPopupMenu(popup);
 	}
-	
-	//Adds the items to the popup menu
-	public void addMenuItemsToPopup()
-	{
+
+	// Adds the items to the popup menu
+	public void addMenuItemsToPopup() {
 		popup.add(menuClose);
 		popup.add(menuOpen);
 	}
-	
-	//Adds the menu bar to the main menu
-	public void addMenuToMenuBar()
-	{
+
+	// Adds the menu bar to the main menu
+	public void addMenuToMenuBar() {
 		menuBar.add(home);
 		menuBar.add(rateSheet);
 		menuBar.add(bookingForm);
+		menuBar.add(staff);
+		menuBar.add(customer);
 	}
-	
-	//Adds the menu items to the menu
-	public void addMenuItemsToMenu()
-	{
+
+	// Adds the menu items to the menu
+	public void addMenuItemsToMenu() {
 		rateSheet.add(menuItemRateSheet);
 		bookingForm.add(menuItemBookingForm);
+		staff.add(menuItemStaffForm);
+		customer.add(menuItemCustomerForm);
 		home.add(save);
 	}
-	
-	//Adds the components to the desktop
-	public void addComponentsToWindow()
-	{
-		this.add(desktop);
+
+	// Adds the components to the desktop
+	public void addComponentsToWindow() {
+		this.setLayout(new BorderLayout()); // Set BorderLayout for the main frame
+		this.add(desktop, BorderLayout.CENTER); // Add desktop to the center
+
 	}
-	
-	//Sets the properties of the display window
-	public void setWindowProperties()
-	{
+
+	// Sets the properties of the display window
+	public void setWindowProperties() {
 		this.setJMenuBar(menuBar);
 		this.setSize(1020, 700);
 		this.setResizable(true);
@@ -113,104 +133,116 @@ public class HomeWindow extends JFrame{
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
-	
-	//Enables the Rate Sheet and Booking form windows to display
-	public void registerListener()
-	{
-		//Adding the rate sheet to the main window
-		menuItemRateSheet.addActionListener(new ActionListener()
-				{
+
+	// Enables the Rate Sheet and Booking form windows to display
+	public void registerListener() {
+		// Adding the rate sheet to the main window
+		menuItemRateSheet.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e)
-			{
+			public void actionPerformed(ActionEvent e) {
 				desktop.add(new RateSheet());
 			}
-				});
-		//Adding the booking form to the main window
-		menuItemBookingForm.addActionListener(new ActionListener()
-				{
+		});
+		// Adding the booking form to the main window
+		menuItemBookingForm.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e)
-			{
+			public void actionPerformed(ActionEvent e) {
 				desktop.add(new BookingForm());
 			}
-				});
-		//Adding an action listener to the menu open icon
-		menuOpen.addActionListener(new ActionListener()
-		{
+		});
+		// Adding the staff form to the main window
+		menuItemStaffForm.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				SystemTray.getSystemTray().remove(trayIcon); setVisible(true);
+			public void actionPerformed(ActionEvent e) {
+				desktop.add(new CreateStaffForm());
 			}
 		});
-		//Adds an action listener to the menu icon menu close and removes the tray icon
-		menuClose.addActionListener(new ActionListener()
-		{
+		// Adding the booking form to the main window
+		menuItemCustomerForm.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e)
-			{
+			public void actionPerformed(ActionEvent e) {
+				desktop.add(new CustomerForm());
+			}
+		});
+		// Adding an action listener to the menu open icon
+		menuOpen.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SystemTray.getSystemTray().remove(trayIcon);
+				setVisible(true);
+			}
+		});
+		// Adds an action listener to the menu icon menu close and removes the tray icon
+		menuClose.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
 				SystemTray.getSystemTray().remove(trayIcon);
 				System.exit(0);
 			}
 		});
-		
-		//Setting up a window listener for a window in java
-		this.addWindowListener(new WindowListener()
-		{
+
+		// Setting up a window listener for a window in java
+		this.addWindowListener(new WindowListener() {
 			@Override
-			public void windowOpened(WindowEvent e)
-			{
-				//System.out.println("Welcome to the Java Haulage and Trucking Ssytem");
+			public void windowOpened(WindowEvent e) {
+				// System.out.println("Welcome to the Java Haulage and Trucking Ssytem");
 			}
-			
+
 			@Override
-			public void windowClosing(WindowEvent e)
-			{
+			public void windowClosing(WindowEvent e) {
 				try {
 					SystemTray.getSystemTray().add(trayIcon);
-				}
-				catch(AWTException e1)
-				{
+				} catch (AWTException e1) {
 					e1.printStackTrace();
 				}
 			}
-			
+
 			@Override
-			public void windowClosed(WindowEvent e)
-			{
-				
+			public void windowClosed(WindowEvent e) {
+
 			}
-			
+
 			@SuppressWarnings("unused")
-			public void windowlconified(WindowEvent e)
-			{
-				
+			public void windowlconified(WindowEvent e) {
+
 			}
-			
+
 			@Override
-			public void windowDeiconified(WindowEvent e)
-			{
-				
+			public void windowDeiconified(WindowEvent e) {
+
 			}
-			
+
 			@Override
-			public void windowActivated(WindowEvent e)
-			{
-				
+			public void windowActivated(WindowEvent e) {
+
 			}
-			
-			public void windowDeactivated(WindowEvent e)
-			{
-				
+
+			public void windowDeactivated(WindowEvent e) {
+
 			}
 
 			@Override
 			public void windowIconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 		});
-	} 
-		
+	}
+
+	// Displays the welcome message on the home window
+	public void displayWelcomeMessage() {
+		JPanel welcomePanel = new JPanel();
+		welcomePanel.setBackground(Color.BLUE);
+		welcomePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+		// Create a label for the welcome message
+		JLabel welcomeLabel = new JLabel("Welcome to JAVA Haulage and Trucking!");
+		welcomeLabel.setFont(new Font("Arial", Font.BOLD, 60));
+
+		// Add the label to the welcome panel
+		welcomePanel.add(welcomeLabel);
+
+		// Add the welcome panel to the main frame
+		this.add(welcomePanel, BorderLayout.NORTH); // Add to NORTH or any suitable position
+	}
 }
