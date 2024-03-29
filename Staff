@@ -12,6 +12,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -64,6 +67,8 @@ public class Staff
 	
 	@Column(name="status")
 	protected String status; //part-time or full-time
+	@Column(name= "salary")
+	protected double salary;
 	
 	//default constructor
 	public Staff()
@@ -81,11 +86,12 @@ public class Staff
 		postOffice = "";
 		parish = "";
 		status = "";
+		salary = 0.00;
 	}
 	
 	//primary constructor
 	public Staff(String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
-			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status) 
+			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, double salary) 
 	{
 		this.staffId = staffId;
 		this.firstName = firstName;
@@ -100,6 +106,7 @@ public class Staff
 		this.postOffice = postOffice;
 		this.parish = parish;
 		this.status = status;
+		this.salary = salary;
 	}
 	
 	//copy constructor
@@ -118,6 +125,7 @@ public class Staff
 		this.postOffice = staff.postOffice;
 		this.parish = staff.parish;
 		this.status = staff.status;
+		this.salary = staff.salary;
 	}
 
 	/*Accessors and Mutators*/
@@ -237,7 +245,16 @@ public class Staff
 	{
 		this.status = status;
 	}
-
+	
+	public double getSalary()
+	{
+		return salary;
+	}
+	
+	public void setSalary(double salary)
+	{
+		this.salary = salary;
+	}
 	/*toString*/
 	@Override
 	public String toString() 
@@ -252,7 +269,8 @@ public class Staff
 				+ "\nOffice Location:\t\t" + officeLocation
 				+ "\nPosition:\t\t\t" + position
 				+ "\nAddress:\t\t\t" + address1 + ", " + address2 + ", " + postOffice + ", " + parish 
-				+ "\nStatus:\t\t\t\t" + status;
+				+ "\nStatus:\t\t\t\t" + status
+				+"\nSalary:\t\t\t\t\"" +salary;
 	}
 	
 	/*sets the staffId as a randomly-generated string consisting of 6 numerical values*/
@@ -380,4 +398,36 @@ public class Staff
 			session.close();
 		}
 	}
+
+	// Display staff salaries
+    public void displayStaffSalaries() {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+
+        try {
+            // Retrieve all staff from the database
+            List<Staff> staffList = session.createQuery("FROM Staff", Staff.class).list();
+
+            // Define column names
+            String[] columnNames = {"Staff ID", "First Name", "Last Name", "Position", "Salary"};
+
+            // Create a DefaultTableModel with column names
+            DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+            // Populate the table model with staff data
+            for (Staff staff : staffList) {
+                Object[] rowData = {staff.getStaffId(), staff.getFirstName(), staff.getLastName(), staff.getPosition(), staff.getSalary()};
+                model.addRow(rowData);
+            }
+
+            // Create JTable with the model
+            JTable table = new JTable(model);
+
+            // Display the table in a JScrollPane
+            JOptionPane.showMessageDialog(null, new JScrollPane(table), "Staff Salaries", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            System.err.println("Error displaying staff salaries: " + e.getMessage());
+        } finally {
+            session.close();
+        }
+    }
 }
