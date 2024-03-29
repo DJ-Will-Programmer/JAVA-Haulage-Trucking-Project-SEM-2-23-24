@@ -15,7 +15,7 @@ import org.hibernate.Transaction;
 import dbConnection.SessionFactoryBuilder;
 
 @Entity
-@Table(name="contractors")
+@Table(name="contractor")
 public class Contractor extends Staff
 {
 	//start and end date of contract work
@@ -34,10 +34,10 @@ public class Contractor extends Staff
 	
 	//primary constructor
 	public Contractor (String staffId, String firstName, String lastName, LocalDate dateOfBirth, String telephone, String email, 
-			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, 
+			String officeLocation, String position, String address1, String address2, String postOffice, String parish, String status, double salary, 
 			LocalDate start, LocalDate end)
 	{
-		super(staffId, firstName, lastName, dateOfBirth, telephone, email, officeLocation, position, address1, address2, postOffice, parish, status);
+		super(staffId, firstName, lastName, dateOfBirth, telephone, email, officeLocation, position, address1, address2, postOffice, parish, status, salary);
 		this.contractStartDate = start;
 		this.contractEndDate = end;
 	}
@@ -46,7 +46,7 @@ public class Contractor extends Staff
 	{
 		super(contractor.staffId, contractor.firstName, contractor.lastName, contractor.dateOfBirth, contractor.telephone, contractor.email, 
 				contractor.officeLocation, contractor.position, contractor.address1, contractor.address2, contractor.postOffice, 
-				contractor.parish, contractor.status);
+				contractor.parish, contractor.status, contractor.salary);
 		this.contractStartDate = contractor.contractStartDate;
 		this.contractEndDate = contractor.contractEndDate;
 	}
