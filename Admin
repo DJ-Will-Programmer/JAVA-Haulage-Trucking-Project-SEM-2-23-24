@@ -16,7 +16,7 @@ import dbConnection.SessionFactoryBuilder;
 
 /*hibernate mapping*/
 @Entity
-@Table(name="staff") //table name in db
+@Table(name="admin") //table name in db
 
 public class Admin extends Staff //Admin is a child class of Staff
 {	
@@ -32,17 +32,17 @@ public class Admin extends Staff //Admin is a child class of Staff
 	//primary constructor
 	public Admin (String staffId, String firstName, String lastName, LocalDate dateOfBirth, 
 			String telephone, String email, String officeLocation, String position, 
-			String address1, String address2, String postOffice, String parish, String status, String password)
+			String address1, String address2, String postOffice, String parish, String status, double salary, String password)
 	{
 		super(staffId, firstName, lastName, dateOfBirth, telephone, email, 
-				officeLocation, position, address1, address2, postOffice, parish, status);
+				officeLocation, position, address1, address2, postOffice, parish, status, salary);
 		this.password = password;
 	}
 	
 	public Admin(Admin admin) //copy constructor
 	{
 		super(admin.staffId, admin.firstName, admin.lastName, admin.dateOfBirth, admin.telephone, admin.email,
-				admin.officeLocation, admin.position, admin.address1, admin.address2, admin.postOffice, admin.parish, admin.status);
+				admin.officeLocation, admin.position, admin.address1, admin.address2, admin.postOffice, admin.parish, admin.status, admin.salary);
 		this.password = admin.password;
 	}	
 	
