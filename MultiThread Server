@@ -1,0 +1,725 @@
+//William Hume ID#2007166
+package server;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import javax.swing.JOptionPane;
+import java.time.LocalDate;
+import domain.Admin;
+import domain.Contractor;
+import domain.SessionFactoryBuilder;
+import domain.Staff;
+import domain.Orders;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import domain.Customer;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
+import javax.persistence.Query;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+public class MultiThreadServer {
+
+    private ServerSocket serverSocket = null;
+    private Socket connectionSocket;
+    private ObjectOutputStream objOs;
+    private ObjectInputStream objIs;
+    private int clientCount;
+    private Connection jhtConn;
+    public static final Logger logger = LogManager.getLogger(MultiThreadServer.class);
+    public Object data;
+    private JComboBox<String> rateComboBox = new JComboBox<>();
+    public MultiThreadServer() {
+        try {
+            serverSocket = new ServerSocket(8000);
+            System.out.println("Server started: " + new Date());
+
+            while (true) {
+                connectionSocket = serverSocket.accept();
+                clientCount++;
+                System.out.println("Server has accepted a Client connection request from the JAVA Haulage and Trucking \nClient connected: " + clientCount + new Date());
+
+                ClientHandler clientHandler = new ClientHandler(connectionSocket);
+                Thread clientThread = new Thread(clientHandler);
+                clientThread.start();
+                System.out.println("Started a thread for Client: ");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    class ClientHandler implements Runnable {
+
+        private Socket socket;
+
+        public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                objIs = new ObjectInputStream(socket.getInputStream());
+                objOs = new ObjectOutputStream(socket.getOutputStream());
+                logger.info("Input and Output streams configured correctly");
+
+                String action;
+                while ((action = (String) objIs.readObject()) != null) {
+                    logger.info("Received action: " + action);
+                    processAction(action);
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                closeConnections();
+            }
+        }
+
+        private void processAction(String action) {
+            switch (action) {
+                case "Add Staff":
+                    try {
+                        Staff staff = (Staff) objIs.readObject();
+                        createStaffMember(staff);
+                        objOs.writeObject(true);
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "Locate Staff":
+                	try {
+                		 String id = (String) objIs.readObject();
+                         Staff employee = locateEmployeeToUpdate(id);
+                         objOs.writeObject(employee);
+                     } catch (IOException | ClassNotFoundException e) {
+                         e.printStackTrace();
+                     }
+                     break;
+                case "Update Staff":
+                	try {
+                		Staff staff = (Staff) objIs.readObject();
+                		updateStaff(staff);
+                		objOs.writeObject(true);
+                	}catch(IOException |ClassNotFoundException e) {
+                		e.printStackTrace();
+                	}
+                case "Driver Filter":
+                	try {
+                		
+                		 List<Staff> drivers = driverFilter();
+                         objOs.writeObject(drivers);
+                     } catch (IOException e) {
+                         e.printStackTrace();
+                     }
+                case "Read All Staff":
+                    try {
+                        List<Staff> allStaff = readAllStaff();
+                        objOs.writeObject(allStaff);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "Create Admin Password":
+                    if (data instanceof Object[]) {
+                        Object[] dataArray = (Object[]) data;
+                        if (dataArray.length == 2 && dataArray[0] instanceof Admin && dataArray[1] instanceof String) {
+                            Admin admin = (Admin) dataArray[0];
+                            String password = (String) dataArray[1];
+                            createAdminPassword(admin, password);
+                        } else {
+                            logger.error("Invalid data format for create admin password action.");
+                        }
+                    } else {
+                        logger.error("Invalid data type for create admin password action.");
+                    }
+                    break;
+                case "Create Contract Duration":
+                    if (data instanceof Object[]) {
+                        Object[] dataArray = (Object[]) data;
+                        if (dataArray.length == 3 && dataArray[0] instanceof Contractor && dataArray[1] instanceof LocalDate && dataArray[2] instanceof LocalDate) {
+                            Contractor contractor = (Contractor) dataArray[0];
+                            LocalDate startDate = (LocalDate) dataArray[1];
+                            LocalDate endDate = (LocalDate) dataArray[2];
+                            createContractDuration(contractor, startDate, endDate);
+                            try {
+								objOs.writeObject(true);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send success response to client
+                        } else {
+                            logger.error("Invalid data format for create contract duration action.");
+                            try {
+								objOs.writeObject(false);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send failure response to client
+                        }
+                    } else {
+                        logger.error("Invalid data type for create contract duration action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send failure response to client
+                    }
+                    break;
+                case "Create Customer":
+                    if (data instanceof Customer) {
+                        Customer customer = (Customer) data;
+                        createCustomer(customer);
+                        try {
+							objOs.writeObject(true);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send success response to client
+                    } else {
+                        logger.error("Invalid data type for create customer action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send failure response to client
+                    }
+                    break;
+                case "Retrieve Employee":
+                    if (data instanceof String) {
+                        String employeeId = (String) data;
+                        Staff employee = retrieveEmployee(employeeId);
+                        try {
+							objOs.writeObject(employee);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send the retrieved employee object to the client
+                    } else {
+                        logger.error("Invalid data type for retrieve employee action.");
+                        try {
+							objOs.writeObject(null);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send null response to client if invalid data type
+                    }
+                    break;
+                case "Check Password":
+                    if (data instanceof String[]) {
+                        String[] loginData = (String[]) data;
+                        String password = loginData[0];
+                        String employeeId = loginData[1];
+                        boolean loginResult = checkPassword(password, employeeId);
+                        try {
+							objOs.writeObject(loginResult);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send the login result to the client
+                    } else {
+                        logger.error("Invalid data type for check password action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send false response to client if invalid data type
+                    }
+                    break;
+                case "Create Orders":
+                    if (data instanceof Orders) {
+                        Orders ordersData = (Orders) data;
+                        createOrders(ordersData);
+                        try {
+							objOs.writeObject(true);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send success response to client
+                    } else {
+                        logger.error("Invalid data type for create orders action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send false response to client if invalid data type
+                    }
+                    break;
+                case "Search Orders by Period":
+                    if (data instanceof String[]) {
+                        String[] periods = (String[]) data;
+                        if (periods.length == 2) {
+                            searchAndDisplayByPeriod(periods[0], periods[1]);
+                            try {
+								objOs.writeObject(true);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send success response to client
+                        } else {
+                            logger.error("Invalid data length for search orders by period action.");
+                            try {
+								objOs.writeObject(false);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send false response to client if invalid data length
+                        }
+                    } else {
+                        logger.error("Invalid data type for search orders by period action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send false response to client if invalid data type
+                    }
+                    break;
+                case "Search Orders by Driver":
+                    if (data instanceof String) {
+                        String driver = (String) data;
+                        searchAndDisplayByDriver(driver);
+                        try {
+							objOs.writeObject(true);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send success response to client
+                    } else {
+                        logger.error("Invalid data type for search orders by driver action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send false response to client if invalid data type
+                    }
+                    break;
+                case "Create Route and Rate":
+                    if (data instanceof Object[]) {
+                        Object[] routeRateData = (Object[]) data;
+                        if (routeRateData.length == 3 && routeRateData[0] instanceof String && routeRateData[1] instanceof String && routeRateData[2] instanceof Double) {
+                            String sourceAddress = (String) routeRateData[0];
+                            String destinationAddress = (String) routeRateData[1];
+                            double rate = (Double) routeRateData[2];
+                            createRouteAndRate(sourceAddress, destinationAddress, rate);
+                            try {
+								objOs.writeObject(true);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send success response to client
+                        } else {
+                            logger.error("Invalid data format for create route and rate action.");
+                            try {
+								objOs.writeObject(false);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} // Send false response to client if invalid data format
+                        }
+                    } else {
+                        logger.error("Invalid data type for create route and rate action.");
+                        try {
+							objOs.writeObject(false);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // Send false response to client if invalid data type
+                    }
+                    break;
+                case "Display Route and Rate":
+                    JComboBox<String> routeRateComboBox = displayRouteAndRate();
+				try {
+					objOs.writeObject(routeRateComboBox);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} // Send the JComboBox to the client
+                    break;
+                case "Get Rate":
+                    double rate = getRate(routeComboBox);
+                    objOs.writeObject(rate); // Send the rate to the client
+                    break;
+                default:
+                    logger.warn("Unknown action received: " + action);
+            }
+        }
+    }
+
+    private void closeConnections() {
+        try {
+            objOs.close();
+            objIs.close();
+            connectionSocket.close();
+        } catch (IOException iox) {
+            iox.printStackTrace();
+        }
+    }
+
+    //Calling the database methods in each class
+    //Staff functions
+    private void createStaffMember(Staff staff) {
+        // Assuming you have a method to add staff to the database in the Staff class
+        staff.createStaffMember(staff);
+    }
+    
+    private Staff locateEmployeeToUpdate(String id)
+    { return locateEmployeeToUpdate(id);}
+    
+    private void updateStaff(Staff staff) {
+    	staff.updateStaff(staff);
+    }
+    
+    private List<Staff> driverFilter() {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        List<Staff> driverList = session.createQuery("FROM Staff WHERE position = 'Driver'", Staff.class).list();
+        session.close(); // Close the session after retrieving data
+        return driverList;
+    }
+    private List<Staff> readAllStaff() {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        List<Staff> staffList = session.createQuery("FROM Staff", Staff.class).list();
+        session.close(); // Close the session after retrieving data
+        return staffList;
+    }
+    //Admin function
+    private void createAdminPassword(Admin staff, String password) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            staff.setPassword(password);
+
+            session.update(staff); // Update staff with new password
+            transaction.commit();
+
+            System.out.println(staff.toString());
+
+            JOptionPane.showMessageDialog(null, "Admin password has been set.", "Password set.", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException re) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        } catch (Exception ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            System.err.println("Error setting admin password: " + ex.getMessage());
+        } finally {
+            session.close();
+        }
+    }
+    
+    //Contractor functions
+    private void createContractDuration(Contractor staff, LocalDate start, LocalDate end) {
+        try {
+            // Send the action and data to the server
+            objOs.writeObject("Create Contract Duration"); // Send the action
+            objOs.writeObject(new Object[]{staff, start, end}); // Send the contractor object and dates
+            objOs.flush();
+            
+            // Receive response from the server
+            boolean success = (boolean) objIs.readObject(); // Assuming the server sends a boolean indicating success
+            if (success) {
+                JOptionPane.showMessageDialog(null, "Contract start and end dates have been set.", "Success.", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to set contract start and end dates.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error setting contract duration: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    //Customer functions
+    public static void createCustomer(Customer customer) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.save(customer);
+            transaction.commit();
+            
+            System.out.println(customer.toString());
+        } catch (RuntimeException re) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            re.printStackTrace();
+        } finally {
+            session.close();
+        }
+    }
+    //Login Form functions
+    public static Staff retrieveEmployee(String id) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Staff employee = new Staff();
+
+        try {
+            employee = session.get(Staff.class, id);
+
+            if (employee != null) {
+                return employee;
+            } else {
+                System.err.println("Employee with ID number " + id + " does not exist.");
+            }
+        } catch (Exception e) {
+            System.err.println("ID not found. " + e.getMessage());
+        } finally {
+            session.close();
+        }
+
+        return employee;
+    }
+    
+    //Check Passwaord
+    public static boolean checkPassword(String pw, String id) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Staff staff = null;
+
+        try {
+            staff = (Staff) session.createQuery("FROM Staff s WHERE s.password = :pw AND s.staffId = :id")
+                        .setParameter("pw", pw)
+                        .setParameter("id", id)
+                        .uniqueResult();
+
+            if (staff != null) {
+                System.out.println("Log-in successful.");
+                return true;
+            }
+        } catch (Exception e) {
+            System.err.println("Error attempting to log in: " + e.getMessage());
+        } finally {
+            session.close();
+        }
+
+        return false;
+    }
+    //Orders functions
+    //Create Orders
+    public void createOrders(Orders dataFromForm) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            Orders orders = new Orders(dataFromForm);
+
+            session.save(orders);
+            transaction.commit();
+            logger.info("Database entry successful. Booking form data written to orders table");
+            System.out.println(orders.toString());
+
+        } catch (RuntimeException re) {
+            if (transaction != null) {
+                transaction.rollback();
+                logger.error("Failed to write Booking form data to orders table");
+            }
+        } finally {
+            session.close();
+        }
+    }
+    //Search orders by period
+    public void searchAndDisplayByPeriod(String startPeriod, String endPeriod) {
+        try {
+            // Parse the start and end dates
+            LocalDate startDate = LocalDate.parse(startPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate endDate = LocalDate.parse(endPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+            // Open a Hibernate session
+            Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = session.beginTransaction();
+
+            // Use Criteria API to construct the query
+            Query query = session.createQuery("FROM Orders WHERE date BETWEEN :startDate AND :endDate", Orders.class);
+            query.setParameter("startDate", startDate);
+            query.setParameter("endDate", endDate);
+            List<Orders> orders = query.getResultList();
+
+            // Create a JFrame to display the table
+            JFrame frame = new JFrame("Search Results");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            // Create a DefaultTableModel for the JTable
+            DefaultTableModel model = new DefaultTableModel();
+            JTable table = new JTable(model);
+
+            // Add columns to the table model
+            model.addColumn("Invoice Number");
+            model.addColumn("Company");
+            model.addColumn("Source Address");
+            model.addColumn("Destination Address");
+            model.addColumn("Rate");
+            model.addColumn("Driver");
+            model.addColumn("Date");
+
+            // Add rows to the table model
+            for (Orders order : orders) {
+                model.addRow(new Object[]{
+                        order.getInvoiceNumber(),
+                        order.getCompany(),
+                        order.getSourceAddress(),
+                        order.getDestinationAddress(),
+                        order.getRate(),
+                        order.getDriver(),
+                        order.getDate()
+                });
+            }
+
+            // Add the table to a scroll pane
+            JScrollPane scrollPane = new JScrollPane(table);
+            frame.add(scrollPane);
+            frame.pack();
+            frame.setVisible(true);
+
+            transaction.commit();
+
+            // Close the session
+            session.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("Failed to retrieve data for the specified period");
+        }
+    }
+    //Search by Driver
+    public void searchAndDisplayByDriver(String driver) {
+        try {
+            // Open a Hibernate session
+            Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = session.beginTransaction();
+
+            // Use Criteria API to construct the query
+            List<Orders> orders = session.createQuery("FROM Orders WHERE driver = :driver", Orders.class)
+                    .setParameter("driver", driver)
+                    .getResultList();
+
+            // Create a JFrame to display the table
+            JFrame frame = new JFrame("Search Results");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            // Create a DefaultTableModel for the JTable
+            DefaultTableModel model = new DefaultTableModel();
+            JTable table = new JTable(model);
+
+            // Add columns to the table model
+            model.addColumn("Invoice Number");
+            model.addColumn("Company");
+            model.addColumn("Source Address");
+            model.addColumn("Destination Address");
+            model.addColumn("Rate");
+            model.addColumn("Driver");
+            model.addColumn("Date");
+
+            // Add rows to the table model
+            for (Orders order : orders) {
+                model.addRow(new Object[]{
+                        order.getInvoiceNumber(),
+                        order.getCompany(),
+                        order.getSourceAddress(),
+                        order.getDestinationAddress(),
+                        order.getRate(),
+                        order.getDriver(),
+                        order.getDate()
+                });
+            }
+
+            // Add the table to a scroll pane
+            JScrollPane scrollPane = new JScrollPane(table);
+            frame.add(scrollPane);
+            frame.pack();
+            frame.setVisible(true);
+
+            transaction.commit();
+
+            // Close the session
+            session.close();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            logger.error("Failed to retrieve data for the specified driver");
+        }
+    }
+    //Rate Sheet functions
+    //Create route and rate
+    public void createRouteAndRate(String sourceAddress, String destinationAddress, double rate) {
+        try {
+            // Build SQL statement to insert a new rate
+            String sql = "INSERT INTO rates (`sourceAddress`, `destinationAddress`, `rate`) VALUES (?, ?, ?)";
+            // Prepare the statement
+            PreparedStatement statement = jhtConn.prepareStatement(sql);
+            // Set the values for the parameters
+            statement.setString(1, sourceAddress);
+            statement.setString(2, destinationAddress);
+            statement.setDouble(3, rate);
+            // Execute the query
+            statement.executeUpdate();
+            // Close the statement
+            statement.close();
+            System.out.println("Route and associated rate data have been successfully stored in the rates table!");
+            logger.info("Data successfully written to the rates table");
+        } catch (SQLException e) {
+            System.out.println("Error adding data to the rates table: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    //Display route and rate combo box
+    public JComboBox<String> displayRouteAndRate() {
+        rateComboBox.removeAllItems();
+        try {
+            String query = "SELECT CONCAT(sourceAddress, ' - ', destinationAddress) AS route FROM rates";
+            PreparedStatement statement = jhtConn.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                rateComboBox.addItem(resultSet.getString("route"));
+            }
+            statement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Failed to retrieve data from rates table: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return rateComboBox;
+    }
+    
+    //Displays the rate
+    public double getRate(JComboBox<String> routeComboBox) {
+        double rate = 0.0;
+        String selectedRoute = (String) routeComboBox.getSelectedItem();
+        try {
+            String query = "SELECT rate FROM rates WHERE CONCAT(sourceAddress, ' - ', destinationAddress) = ?";
+            PreparedStatement statement = jhtConn.prepareStatement(query);
+            statement.setString(1, selectedRoute);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                rate = resultSet.getDouble("rate");
+            }
+            statement.close();
+            resultSet.close();
+        } catch (SQLException e) {
+            logger.error("Failed to retrieve rate for route from rates table: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return rate;
+    }
+    public static void main(String[] args) {
+        new MultiThreadServer();
+    }
+}
