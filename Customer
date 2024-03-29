@@ -1,8 +1,8 @@
 //Aniecia Campbell 2108881
 package apgrouproject;
 
+import java.time.LocalDate;
 import java.util.Random;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -44,6 +44,8 @@ public class Customer {
 
 	@Column(name = "balance")
     private double balance;
+
+	private LocalDate creationDate;
    	
 	//Default Constructor
     public Customer(){
@@ -157,14 +159,40 @@ public class Customer {
 		this.balance = balance;
 	}
 	
-	@Override
-	public String toString() {
-		return "Customer ID:\n" + customerId + "Company:" + company + "Contact Person:" + contactPerson + "Address 1:"
-				+ address1 + "Address 2:" + address2 + "Post Office:" + postOffice + "Parish:" + parish + "Telephone:"
-				+ telephone + "Email:" + email + "Status=" + status + "Balance:" + balance
-				+ "\n";
+	public LocalDate getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(LocalDate creationDate) {
+		this.creationDate = creationDate;
 	}
 	
+	
+	@Override
+	public String toString() {
+		return "Customer [customerId=" + customerId + ", company=" + company + ", contactPerson=" + contactPerson
+				+ ", address1=" + address1 + ", address2=" + address2 + ", postOffice=" + postOffice + ", parish="
+				+ parish + ", telephone=" + telephone + ", email=" + email + ", status=" + status + ", balance="
+				+ balance + ", creationDate=" + creationDate + "]";
+	}
+
+	public void checkAndUpdateCustomerStatus() {
+	    LocalDate currentDate = LocalDate.now();
+	    LocalDate thirtyDaysAgo = currentDate.minusDays(30);
+	    //check if the balance is greater than zero and if the account was created more than 30 days ago
+	    if (this.getBalance() > 0 && this.getCreationDate().isBefore(thirtyDaysAgo)) {
+	    	//sets to inactive
+	        this.setStatus("inactive");
+	    }
+	}
+	//adds the current rate to the balance of the customer if the customer is inactive
+		public void addRateToInactiveAccounts(double rate) {
+		    LocalDate currentDate = LocalDate.now();
+		    LocalDate thirtyDaysAgo = currentDate.minusDays(30);
+		    if (this.getStatus().equals("inactive") && this.getCreationDate().isBefore(thirtyDaysAgo)) {
+		        this.setBalance(this.getBalance() + rate);
+		    }
+		}
 	 // Generates a unique string for a customer ID
     // Creating a static attribute to hold the characters used to make up the invoice number
     private static final String CHARACTERS = "123456789";
