@@ -1,14 +1,13 @@
 //William Hume ID:2007166
 package apgrouproject;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-
+import java.time.LocalDate;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,18 +15,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
-
 import com.toedter.calendar.JCalendar;
-import dbConnection.FormDatabase;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -223,7 +217,9 @@ public class BookingForm extends JInternalFrame {
 				// rate sheet class
 				RateSheet rateSheet = new RateSheet();
 				double rate = rateSheet.getRate(routeAndRateComboBox);
-
+				//Adding the inactive status to customer accounts
+				Customer customer = new Customer();
+				customer.addRateToInactiveAccounts(rate);
 				// Creating variables to store data from the form to write it to the database
 
 				// Converting date to string
@@ -255,7 +251,6 @@ public class BookingForm extends JInternalFrame {
 							driverSelected, dateValue);
 					orders.createOrders(orders); // call to function in Staff class that writes staff objects to
 													// database
-
 					JOptionPane.showMessageDialog(null, "Booking data stored to orders table: ", "Success",
 							JOptionPane.INFORMATION_MESSAGE);
 
@@ -298,7 +293,7 @@ public class BookingForm extends JInternalFrame {
 				String endPeriod = JOptionPane.showInputDialog(null, "Enter the end date in the form yyyy-MM-dd",
 						"Java Haulage and Trucking End Period Input", JOptionPane.INFORMATION_MESSAGE);
 				Orders ord = new Orders();
-				ord.searchAndDisplayByPeriod(null, startPeriod, endPeriod);
+				ord.searchAndDisplayByPeriod( startPeriod, endPeriod);
 			}
 		});
 		// Adding the driverOrders button the form
