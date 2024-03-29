@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
-import javax.swing.JOptionPane;
 import java.time.LocalDate;
 import domain.Admin;
 import domain.Contractor;
@@ -24,7 +23,6 @@ import domain.Customer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import javax.persistence.Query;
 import javax.swing.*;
@@ -353,8 +351,14 @@ public class MultiThreadServer {
 				} // Send the JComboBox to the client
                     break;
                 case "Get Rate":
-                    double rate = getRate(routeComboBox);
-                    objOs.writeObject(rate); // Send the rate to the client
+				JComboBox<String> routeComboBox = new JComboBox<>();
+				double rate = getRate(routeComboBox);
+				try {
+					objOs.writeObject(rate);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} // Send the rate to the client
                     break;
                 default:
                     logger.warn("Unknown action received: " + action);
@@ -718,6 +722,19 @@ public class MultiThreadServer {
             e.printStackTrace();
         }
         return rate;
+    }
+    
+    // Utility method to get the source address based on a given address string
+    public String getSourceAddress(String sourceAddress) {
+        String address;
+        if (sourceAddress.startsWith("Kingston")) {
+            address = "21 Marcus Garvey Drive, Kingston 6";
+        } else if (sourceAddress.startsWith("Montego Bay")) {
+            address = "32 Harbour Street, St. James";
+        } else {
+            address = "Address not available";
+        }
+        return address;
     }
     public static void main(String[] args) {
         new MultiThreadServer();
