@@ -4,7 +4,6 @@ package apgrouproject;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Random;
 
@@ -12,10 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Root;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -25,8 +21,6 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.CriteriaQuery;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 
 import dbConnection.SessionFactoryBuilder;
@@ -202,13 +196,23 @@ public class Orders {
         }
     }
 
-    // Method searches for orders based on a particular period and displays results
-    // in a table
-    public void searchAndDisplayByPeriod(List<Orders> orders, String startPeriod, String endPeriod) {
+    // Method searches for orders based on a particular period
+    public void searchAndDisplayByPeriod(String startPeriod, String endPeriod) {
         try {
-            // Parse the start and end periods into LocalDate objects
+            // Parse the start and end dates
             LocalDate startDate = LocalDate.parse(startPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             LocalDate endDate = LocalDate.parse(endPeriod, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+            // Open a Hibernate session
+            Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = session.beginTransaction();
+
+            // Use Criteria API to construct the query
+            Query<Orders> query = session.createQuery("FROM Orders WHERE date BETWEEN :startDate AND :endDate",
+                    Orders.class);
+            query.setParameter("startDate", startDate);
+            query.setParameter("endDate", endDate);
+            List<Orders> orders = query.getResultList();
 
             // Create a JFrame to display the table
             JFrame frame = new JFrame("Search Results");
@@ -245,10 +249,14 @@ public class Orders {
             frame.add(scrollPane);
             frame.pack();
             frame.setVisible(true);
-        } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(null, "Invalid date format!!", "Error", JOptionPane.ERROR_MESSAGE);
+
+            transaction.commit();
+
+            // Close the session
+            session.close();
+        } catch (Exception e) {
             e.printStackTrace();
-            logger.error("Failed to parse date");
+            logger.error("Failed to retrieve data for the specified period");
         }
     }
 
@@ -260,7 +268,9 @@ public class Orders {
             Transaction transaction = session.beginTransaction();
 
             // Use Criteria API to construct the query
-            List<Orders> orders = session.createCriteria(Orders.class).add(Restrictions.eq("driver", driver)).list();
+            List<Orders> orders = session.createQuery("FROM Orders WHERE driver = :driver", Orders.class)
+                    .setParameter("driver", driver)
+                    .getResultList();
 
             // Create a JFrame to display the table
             JFrame frame = new JFrame("Search Results");
