@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.time.LocalDate;
 import domain.Admin;
 import domain.Contractor;
@@ -19,6 +20,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import domain.Customer;
+import domain.MaintenanceWorker;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,6 +40,11 @@ public class MultiThreadServer {
     public static final Logger logger = LogManager.getLogger(MultiThreadServer.class);
     public Object data;
     private JComboBox<String> rateComboBox = new JComboBox<>();
+    // Static constants for generating customer IDs
+    private static final String CUSTOMER_CHARACTERS = "123456789";
+    private static final int CUSTOMER_LENGTH = 7;
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int LENGTH = 7;
     public MultiThreadServer() {
         try {
             serverSocket = new ServerSocket(8000);
@@ -47,6 +54,7 @@ public class MultiThreadServer {
                 connectionSocket = serverSocket.accept();
                 clientCount++;
                 System.out.println("Server has accepted a Client connection request from the JAVA Haulage and Trucking \nClient connected: " + clientCount + new Date());
+                logger.info("Server accepting Client connection request");
 
                 ClientHandler clientHandler = new ClientHandler(connectionSocket);
                 Thread clientThread = new Thread(clientHandler);
@@ -65,7 +73,91 @@ public class MultiThreadServer {
         public ClientHandler(Socket socket) {
             this.socket = socket;
         }
+        
+     // Method to generate invoice number
+        public static String generateInvoiceNumber() {
+            Random random = new Random();
+            StringBuilder invoiceBuilder = new StringBuilder(LENGTH);
+            for (int i = 0; i < LENGTH; i++) {
+                invoiceBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+            }
+            return invoiceBuilder.toString();
+        }
 
+        public static void main(String[] args) {
+            // Server initialization code...
+        }
+     // Method to generate a random staff ID
+        private String generateStaffId() {
+            String chars = "0123456789";
+            int length = 6;
+
+            Random randomId = new Random();
+
+            StringBuilder stringBuilder = new StringBuilder(length);
+
+            for (int index = 0; index < length; index++) {
+                stringBuilder.append(chars.charAt(randomId.nextInt(chars.length())));
+            }
+            return stringBuilder.toString();
+        }
+        
+        // Method to generate a random customer ID
+        private String getCustomersId() {
+            Random random = new Random();
+            StringBuilder customerIdBuilder = new StringBuilder(CUSTOMER_LENGTH);
+
+            for (int i = 0; i < CUSTOMER_LENGTH; i++) {
+                customerIdBuilder.append(CUSTOMER_CHARACTERS.charAt(random.nextInt(CUSTOMER_CHARACTERS.length())));
+            }
+            return customerIdBuilder.toString();
+        }
+        private void addRateToInactiveAccounts(Customer customer, double rate) {
+            LocalDate currentDate = LocalDate.now();
+            LocalDate thirtyDaysAgo = currentDate.minusDays(30);
+            if (customer.getStatus().equals("inactive") && customer.getCreationDate().isBefore(thirtyDaysAgo)) {
+                double newBalance = customer.getBalance() + rate;
+                customer.setBalance(newBalance);
+            }
+        } 
+        
+     // Method to check and update customer status
+        private void checkAndUpdateCustomerStatus(Customer customer) {
+            LocalDate currentDate = LocalDate.now();
+            LocalDate thirtyDaysAgo = currentDate.minusDays(30);
+            if (customer.getBalance() > 0 && customer.getCreationDate().isBefore(thirtyDaysAgo)) {
+                customer.setStatus("inactive");
+            }
+        }
+        
+     // Method to add specialization to maintenance types
+        private void addSpecialization(MaintenanceWorker staff, String specialization) {
+            Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+            Transaction transaction = null;
+
+            try {
+                transaction = session.beginTransaction();
+                staff.setSpecialization(specialization);
+
+                session.update(staff); // Update staff table with new data
+                transaction.commit();
+
+                System.out.println(staff.toString());
+
+                JOptionPane.showMessageDialog(null, "Maintenance specialization has been set.", "Success.", JOptionPane.INFORMATION_MESSAGE);
+            } catch (RuntimeException re) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+            } catch (Exception ex) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                System.err.println("Error setting specialization: " + ex.getMessage());
+            } finally {
+                session.close();
+            }
+        }
         @Override
         public void run() {
             try {
@@ -96,6 +188,28 @@ public class MultiThreadServer {
                         e.printStackTrace();
                     }
                     break;
+                case "Get Staff Id":
+                    try {
+                        Staff staff = (Staff) objIs.readObject();
+                        // Generate staff ID
+                        staff.setStaffId(generateStaffId());
+                        createStaffMember(staff);
+                        objOs.writeObject(true);
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "Get Customer Id":
+                    try {
+                        Staff staff = (Staff) objIs.readObject();
+                        // Generate staff ID
+                        staff.setStaffId(generateStaffId());
+                        createStaffMember(staff);
+                        objOs.writeObject(true);
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 case "Locate Staff":
                 	try {
                 		 String id = (String) objIs.readObject();
@@ -113,6 +227,11 @@ public class MultiThreadServer {
                 	}catch(IOException |ClassNotFoundException e) {
                 		e.printStackTrace();
                 	}
+                break;
+                case "Display Salaries":
+                    displayStaffSalaries();
+                    break;
+                    
                 case "Driver Filter":
                 	try {
                 		
@@ -126,6 +245,18 @@ public class MultiThreadServer {
                         List<Staff> allStaff = readAllStaff();
                         objOs.writeObject(allStaff);
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                    
+                case "Add Maintenance Specialization":
+                    try {
+                        // Assuming you receive the MaintenanceWorker object and specialization from the client
+                        MaintenanceWorker staff = (MaintenanceWorker) objIs.readObject();
+                        String specialization = (String) objIs.readObject();
+                        addSpecialization(staff, specialization);
+                        // Send a response to the client if needed
+                    } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
                     break;
@@ -194,6 +325,39 @@ public class MultiThreadServer {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} // Send failure response to client
+                    }
+                    break;
+                case "Generate Invoice Number":
+                    try {
+                        String invoiceNumber = generateInvoiceNumber();
+                        // Send the generated invoice number to the client
+                        objOs.writeObject(invoiceNumber);
+                        // Optionally, send a response to the client if needed
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                    
+                case "Add Rate To Inactive Accounts":
+                    try {
+                        // Assuming you receive the customer object from the client
+                        Customer customer = (Customer) objIs.readObject();
+                        double rate = objIs.readDouble(); // Read the rate from the client
+                        addRateToInactiveAccounts(customer, rate);
+                        // Send a response to the client if needed
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                    
+                case "Check And Update Customer Status":
+                    try {
+                        // Assuming you receive the customer object from the client
+                        Customer customer = (Customer) objIs.readObject();
+                        checkAndUpdateCustomerStatus(customer);
+                        // Send a response to the client if needed
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
                     }
                     break;
                 case "Retrieve Employee":
@@ -359,6 +523,16 @@ public class MultiThreadServer {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} // Send the rate to the client
+                    break;
+                case "Add Specialization": // New case for adding specialization to MaintenanceWorker
+                    try {
+                        MaintenanceWorker staff = (MaintenanceWorker) objIs.readObject();
+                        String specialization = (String) objIs.readObject(); // Read specialization string
+                        addSpecialization(staff, specialization);
+                        objOs.writeObject(true);
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 default:
                     logger.warn("Unknown action received: " + action);
@@ -735,6 +909,67 @@ public class MultiThreadServer {
             address = "Address not available";
         }
         return address;
+    }
+    
+    //Maintenance Worker functions
+    // Add specialization to maintenance types in the database
+    public void addSpecialization(MaintenanceWorker staff, String specialization) {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            staff.setSpecialization(specialization);
+
+            session.update(staff); // Update maintenance worker table with new data
+            transaction.commit();
+
+            System.out.println(staff.toString());
+
+            JOptionPane.showMessageDialog(null, "Maintenance specialization has been set.", "Success.", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException re) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        } catch (Exception ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            System.err.println("Error setting specialization: " + ex.getMessage());
+        } finally {
+            session.close();
+        }
+    }
+    
+    private void displayStaffSalaries() {
+        Session session = SessionFactoryBuilder.getSessionFactory().openSession();
+
+        try {
+            // Retrieve all staff from the database
+            List<Staff> staffList = session.createQuery("FROM Staff", Staff.class).list();
+
+            // Define column names
+            String[] columnNames = {"Staff ID", "First Name", "Last Name", "Position", "Salary"};
+
+            // Create a DefaultTableModel with column names
+            DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+            // Populate the table model with staff data
+            for (Staff staff : staffList) {
+                Object[] rowData = {staff.getStaffId(), staff.getFirstName(), staff.getLastName(), staff.getPosition(), staff.getSalary()};
+                model.addRow(rowData);
+            }
+
+            // Create JTable with the model
+            JTable table = new JTable(model);
+
+            // Display the table in a JScrollPane
+            JOptionPane.showMessageDialog(null, new JScrollPane(table), "Staff Salaries", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            System.err.println("Error displaying staff salaries: " + e.getMessage());
+        } finally {
+            session.close();
+        }
     }
     public static void main(String[] args) {
         new MultiThreadServer();
